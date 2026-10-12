@@ -214,9 +214,9 @@ than the work already done.
 | **Beta** (~75% ready, PSD reliable) | PSD fidelity and Photoshop re-open check, the performance budgets, the user bug backlog, the 15 missing tools, Select and Mask / Content-Aware Fill workspaces, type depth, UI feel (brush, transform, panels), JPEG/PDF/AVIF/JXL formats, Hindi/Arabic/Vietnamese and RTL | **1,100–1,800** |
 | **Full parity** | the above plus the AI tier, plug-in/scripting ecosystem, video depth, long-tail fidelity | **2,300–4,100** |
 
-**Parallelism.** About 80% parallelizes: areas are independent crates and command modules, and
-the repository has sustained 10–20 concurrent agents. At ~12 agents, beta is roughly 100–150
-wall-clock hours. Serial parts: GPU compositor and performance architecture, the PSD writer.
+**Parallelism.** About 80% of this work is estimated to parallelize across independent crates and
+command modules. Elapsed time depends on available contributors, coordination and serial
+architecture work. The GPU compositor/performance architecture and PSD writer remain the serial parts.
 
 **Needs a human.** Owner decisions on the AI backend (#41: which openly licensed models, local
 vs remote) and plug-in hosting (.8BF needs native code under the isolated-`unsafe` rule; UXP is a
@@ -305,7 +305,7 @@ This historical section estimates scope in effort units and distinguishes it fro
 Elapsed time depends on parallel work, coordination, staffing and serial dependencies; the values
 below are rough planning estimates, not a delivery schedule.
 
-| Milestone | Scope | Agent-hours | Wall-clock |
+| Milestone | Scope | Effort units | Elapsed-time estimate |
 |---|---|---:|---:|
 | **To 90% functional** | remaining non-AI/non-video menu items (Variables, Trap, Frame, Migrate, WIA), Camera Raw depth, Vanishing Point UI, selection quality, polish | 60–90 | 10–15 h |
 | **To 95% functional** | the above + PSD oracle 65% → ~90% (bevel/satin shapes, Lab blending, noise-gradient RNG, toe curves), broad UI-parity pass, perf pass | +80–130 | +15–22 h |
@@ -313,16 +313,15 @@ below are rough planning estimates, not a delivery schedule.
 | **Credible AI tier** | ML Select Subject/Sky, Content-Aware Fill (PatchMatch++), basic generative fill/expand — needs model integration; some features may be infeasible fully clean-room without licensed models | 120–250+ | 25–45 h |
 
 **Totals:**
-- To **~95% functional parity** (everything except video and AI): **~140–220 effort units ≈ 25–40
-  wall-clock hours** of Opus 5.5 with parallel agents.
-- To **~98%** incl. the video subsystem: **+50–80 effort units ≈ +10–14 wall-clock hours**.
-- To **~99%** incl. a credible AI tier: **+120–250 effort units ≈ +25–45 wall-clock hours**, with the
+- To **~95% functional parity** (everything except video and AI): **~140–220 planning effort units**; calendar time depends on staffing and sequencing.
+- To **~98%** incl. the video subsystem: **+50–80 effort units**; elapsed time depends on available parallel work.
+- To **~99%** incl. a credible AI tier: **+120–250 effort units**, with the
   caveat that pixel-for-pixel Firefly/Sensei parity is not achievable clean-room without trained
   models; we target functional equivalents.
 
-**Best single number:** Lunola Luma is **~82% of the way** to full Photoshop parity, and reaching a
-**95%, ships-for-most-users** state is roughly **25–40 wall-clock hours** of parallel Opus 5.5 work.
-Closing the last 5% (video + AI) is the long, uncertain tail.
+**Best single number:** Lunola Luma is **~82% of the way** to full Photoshop parity. The
+**95%, ships-for-most-users** state is estimated at **140–220 effort units**; this is a rough
+scope estimate, not a delivery schedule. Closing the last 5% (video + AI) is the long, uncertain tail.
 
 ### Assumptions & caveats
 
