@@ -279,7 +279,7 @@ fn menus_are_as_tall_as_their_rows_on_a_tall_window() {
         assert!(h.query_by_label("Scroll menu down").is_none(), "{top}: no scroll arrows when the rows fit");
         assert!((0..rows(&h, 0).len()).all(|i| visible(&h, 0, i)), "{top}: every row is on screen without scrolling");
     }
-    assert!(checked >= 6, "most menus fit a 900 px window: {checked}");
+    assert!(checked > crate::menus::TOP_MENUS.len() / 2, "most menus fit a 900 px window: {checked}/{}", crate::menus::TOP_MENUS.len());
     // The File menu is taller than the old 400 pt cap and fits at 1440 × 900.
     let mut h = harness((1440.0, 900.0, 1.0));
     open(&mut h, "File");

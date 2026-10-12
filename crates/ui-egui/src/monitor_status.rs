@@ -1,7 +1,7 @@
 //! The monitor profile in the shell (#569): reads the displays and their profiles through the
 //! platform (`Services::read_displays`) at launch and again whenever they may have changed,
 //! picks the display each window is on (its canvas is then shown in that display's profile),
-//! says when the canvas falls back to sRGB, and gives Help › System Info its lines.
+//! says when the canvas falls back to sRGB, and provides the System Info command's lines.
 //!
 //! A re-read is started when the app comes back to the front (a profile changed in System
 //! Settings or by a calibration tool meanwhile), when any window is on no known display or the
@@ -251,7 +251,7 @@ fn displays_changed(app: &PhotocraftApp, ctx: &egui::Context) -> bool {
     }
 }
 
-/// Help › System Info's lines: the monitor profile of each display.
+/// System Info's lines: the monitor profile of each display.
 pub fn summary_lines(app: &PhotocraftApp) -> Vec<String> {
     let c = &app.session.color;
     if c.displays.is_empty() {

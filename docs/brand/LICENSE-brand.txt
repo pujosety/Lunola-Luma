@@ -1,9 +1,8 @@
-ArtCraft brand assets: license
+ArtCraft brand assets — upstream trademark notice
 
-The ArtCraft name, wordmark and mark (the "ArtCraft Marks"), including every file in this
-directory in every color, size and format, are owned by the ArtCraft Team. They are trademarks
-and are NOT open source. They are not covered by PhotoCraft's MIT OR Apache-2.0 license, and nothing in
-that license, in NOTICE or in any other file of this repository grants any right to them.
+The ArtCraft name, wordmark and mark (the "ArtCraft Marks") are owned by the ArtCraft Team. The ArtCraft image assets that accompanied this notice in upstream PhotoCraft have been removed from the Lunola Luma rebrand; this file is retained to preserve their ownership and restrictions. The marks are trademarks and are NOT open source. They are not covered by PhotoCraft's MIT OR Apache-2.0 license, and nothing in that license, in NOTICE or in any other file of this repository grants any right to them.
+
+No ArtCraft image assets are included in Lunola Luma. This notice does not grant permission to use the ArtCraft Marks with Lunola Luma.
 
 Permission
 

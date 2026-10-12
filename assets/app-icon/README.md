@@ -1,47 +1,23 @@
-# PhotoCraft app icon
+# Lunola Luma app icons
 
-A **nine-tailed kitsune with a brow diamond**: an engraving portrait, seated, looking back at the
-viewer, in the Crafting Apps' owl-template framing (full-bleed field, head and body filling the
-tile, tails running off the edges).
+The platform icons are rendered from the official user-supplied `brand/lunola-luma/references/official-lunola-luma-app-icon.png`. The source's RGB colors, rounded-square shape, transparent canvas and safe margins are retained; only isolated alpha≤8 specks outside a one-pixel silhouette halo are cleared. Resizing into required OS formats is the only other transformation. The official product lockup is copied byte-for-byte to `brand/lunola-luma/assets/lunola-luma-lockup.png`.
 
-## Palette
+The `photocraft*` filenames, Linux stock icon ID and macOS resource name intentionally remain unchanged because package manifests, MIME associations and runtime code refer to them. Their artwork is Lunola Luma. Stable machine names do not change the user-visible product name.
 
-Exactly three colours:
+## Generated files
 
-| Colour | Hex | Used for |
-|---|---|---|
-| Ink | `#0b0b0c` | line work and contours |
-| Paper | `#efe9dc` | the figure |
-| PhotoCraft blue (app colour) | `#2f7bf5` | the full-bleed field |
+- `photocraft.svg`, `photocraft-small.svg`: SVG wrappers embedding the supplied transparent app icon; used by macOS artwork and the Linux scalable entry.
+- `lunola-luma.ico`: official product-named Windows ICO; `photocraft.ico` is a byte-identical compatibility path embedded by the existing build.
+- `photocraft-1024.png` / `lunola-luma-1024.png`: 1024 px macOS icon source.
+- `lunola-luma.icns`: product-named macOS icon; `photocraft.icns` is a byte-identical compatibility resource used by the current bundle script.
+- `photocraft.ico`: Windows icon with 16, 20, 24, 32, 40, 48, 64, 128 and 256 px entries.
+- `hicolor/<size>/apps/ai.storyteller.photocraft.png`: PNG theme icons at 16, 24, 32, 48, 64, 128, 256 and 512 px.
+- `hicolor/scalable/apps/ai.storyteller.photocraft.svg`: scalable Linux theme icon.
 
-## Geometry
-
-A 512-unit tile (`viewBox="0 0 512 512"`), rounded square with `rx=112`, no border. The macOS
-renders pad it onto Apple's 824/1024 icon grid; the Windows and Linux renders crop 22 units off
-each side so the figure reads at 16–48 px.
-
-## Provenance
-
-The owner's original drawing, made in ArtCraft (2880 px, engraving style, keyed to the palette),
-vectorised with craftrules `assets/logo-options/_tools/vectorize_tile.py`. The source PNG stays in
-craftrules at `assets/app-icons/photocraft/source.png`. License: see `LICENSE.txt`.
-
-## Files
-
-- `photocraft.svg`: canonical master (traced at 2048 px).
-- `photocraft-small.svg`: lighter trace (traced at 1024 px); also the hicolor scalable icon.
-- `photocraft-1024.png`: 1024 px render on the macOS grid.
-- `photocraft.icns`: macOS bundle icon (`CFBundleIconFile`).
-- `photocraft.ico`: Windows icon, 16–256 px, embedded in the `.exe` by `apps/photocraft/build.rs`.
-- `hicolor/<size>/apps/ai.storyteller.photocraft.png` (16–512) and `hicolor/scalable/...svg`:
-  Linux icon theme.
-
-The app also sets the window icon and Wayland app ID at runtime (`apps/photocraft/src/app_icon.rs`,
-`main.rs`). On Windows the taskbar shows the icon of the Start Menu shortcut that launches the
-exe, so the MSI's `<Icon Id>` keeps the `.exe` extension (ICE50); `app_icon.rs` documents the
-details and tests the `.ico` sizes and the WiX icon references.
+Runtime window icon handling remains in `apps/photocraft/src/app_icon.rs`; the MSI uses the same ICO. The macOS `CFBundleIconFile` remains `PhotoCraft.icns` to match the stable resource filename.
 
 ## Regenerate
 
-Replace `photocraft.svg` (and `photocraft-small.svg`), then run `packaging/icons.sh`. It needs
-`resvg`, plus `iconutil` on macOS; the `.ico` is packed by `cargo xtask ico`.
+Run `packaging/icons.sh` or `python brand/lunola-luma/generate_assets.py` from any directory. Both use the same deterministic generator and require Python 3 with Pillow.
+
+The official Lunola Luma app icon and product lockup are project-owner supplied for this rebrand and its associated builds; they are not covered by the upstream source-code license. See [`brand/lunola-luma/LICENSE-brand.txt`](../../brand/lunola-luma/LICENSE-brand.txt). The replaced upstream PhotoCraft icon's original license notice is retained at `brand/lunola-luma/references/photocraft-icon-LICENSE.txt` for attribution history.

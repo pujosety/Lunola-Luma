@@ -1,4 +1,6 @@
-# Releasing PhotoCraft
+# Upstream PhotoCraft release process
+
+This runbook describes the upstream release workflow, not an approved Lunola Luma release. The rebrand branch changes package display names but keeps upstream artifact filenames, identifiers and release automation; no branded release has been published. Do not publish a Lunola Luma release until the release title, signing identity, URLs and distribution process are reviewed and verified separately.
 
 Every push to the `release` branch runs `.github/workflows/release.yml`. The workflow builds
 signed installers for macOS, Windows, Linux and the web, plus a FreeBSD tarball, then creates
@@ -6,8 +8,9 @@ or updates a **draft** GitHub Release named `PhotoCraft v<version>`. Nobody sees
 maintainer publishes it.
 
 This is PhotoCraft's implementation of the shared
-[release playbook](release-playbook.md). User-facing names say **PhotoCraft**. Files, binaries
-and ids stay lowercase (`photocraft-<version>-<platform>-<arch>.<ext>`, `ai.storyteller.photocraft`).
+[release playbook](release-playbook.md). Upstream releases use **PhotoCraft** display names. This
+rebrand branch uses **Lunola Luma** in package display metadata while retaining machine identifiers
+(`photocraft-<version>-<platform>-<arch>.<ext>`, `ai.storyteller.photocraft`).
 
 ## Cutting a release
 
@@ -58,7 +61,7 @@ in the dialog.
 | Web | `photocraft-web-<v>.zip` (static site; see [`packaging/web/README.md`](../packaging/web/README.md)) | `ubuntu-latest` |
 
 Every binary reports its version, the commit and the build date: `photocraft --version`,
-`photocraft-cli --version`, and *Help › About PhotoCraft*. CI sets `PHOTOCRAFT_BUILD_SHA` and
+`photocraft-cli --version`, and *File › About Lunola Luma* (the app menu on macOS). CI sets `PHOTOCRAFT_BUILD_SHA` and
 `PHOTOCRAFT_BUILD_DATE`, and `crates/engine/src/build_info.rs` reads them at compile time. A plain
 `cargo build` doesn't set them and reports `0.2.0 (dev build)`.
 
@@ -124,10 +127,10 @@ goes in `CARGO_TARGET_<TRIPLE>_RUSTFLAGS`, so host build scripts aren't affected
   (`assets/app-icon/photocraft.ico`) and VERSIONINFO with the `winresource` crate
   (build dependency `0.1`). They only do this when targeting Windows. Elsewhere each
   script is a no-op, even if `PHOTOCRAFT_REQUIRE_WINRES` is set, and the web build
-  doesn't touch that crate. Both set ProductName to PhotoCraft, CompanyName to
-  Learning Machines LLC and the same copyright line. The GUI description is
-  "PhotoCraft image editor" (`photocraft.exe`). The CLI description is
-  "PhotoCraft command-line interface", with OriginalFilename `photocraft-cli.exe`
+  doesn't touch that crate. Both set ProductName to Lunola Luma, CompanyName to
+  LUNOLA and the upstream PhotoCraft copyright line. The GUI description is
+  "Lunola Luma Professional Photo Editor" (`photocraft.exe`). The CLI description is
+  "Lunola Luma command-line interface", with OriginalFilename `photocraft-cli.exe`
   and InternalName `photocraft-cli`. Version strings are the Cargo package version,
   so a pre-release tag is kept; the numeric file and product versions are
   winresource's `major.minor.patch.0`. A missing resource compiler warns, so an
@@ -137,14 +140,14 @@ goes in `CARGO_TARGET_<TRIPLE>_RUSTFLAGS`, so host build scripts aren't affected
 - Release builds use the GUI subsystem, so Start Menu launches don't open a console window.
   The CLI stays console subsystem 3 so its output reaches the terminal.
 - `photocraft.wxs` (WiX v5) is a per-machine install into Program Files with an advertised
-  Start Menu shortcut. PhotoCraft becomes the default app for `.pcraft` and is listed under
+  Start Menu shortcut. Lunola Luma becomes the default app for `.pcraft` and is listed under
   "Open with" for PSD/PSB and image files. It also registers App Paths (Win+R `photocraft`).
   The MSI version is the numeric `X.Y.Z`, because MSI has no pre-release field. Same-version
   upgrades are allowed so that release candidates replace each other.
 - Double-clicking the MSI opens a setup wizard (WixUI_InstallDir without the licence page):
   Welcome, install folder (remembered for upgrades in `HKLM\Software\PhotoCraft\InstallDir`),
   Ready, a progress page, and a Finish page that says where to find the app, with a ticked "Launch
-  PhotoCraft" box. The pages name the full version (`photocraft.en-us.wxl`). `package.ps1` draws
+  Lunola Luma" box. The pages name the full version (`photocraft.en-us.wxl`). `package.ps1` draws
   the wizard's banner and side bitmaps from the app icon, so no WiX stock art ships. `msiexec /qn`
   still installs silently. Building needs the WiX UI and Util extensions:
   `wix extension add -g WixToolset.UI.wixext/5.0.2 WixToolset.Util.wixext/5.0.2`.

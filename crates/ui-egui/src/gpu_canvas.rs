@@ -847,7 +847,7 @@ pub struct Perf {
     pub gpu_uploads: u64,
     /// Why the last refresh fell back to the CPU compositor (None = GPU composited).
     pub gpu_fallback: Option<String>,
-    /// Adapter, backend, driver and fallback state (Help › System Info).
+    /// Adapter, backend, driver and fallback state (System Info command).
     pub gpu_info: GpuInfo,
     /// GPU memory the compositor may hold for layer pages and effect maps (MB; see
     /// [`memory_budget`]).
@@ -864,7 +864,7 @@ pub struct Perf {
     max_decay: f64,
 }
 
-/// What the app renders with and why (Help › System Info, Preferences › Performance, the `perf`
+/// What the app renders with and why (System Info command, Preferences › Performance, the `perf`
 /// control-channel output).
 #[derive(Clone, Debug, Default, PartialEq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -906,7 +906,7 @@ impl GpuInfo {
         self.driver = [info.driver.as_str(), info.driver_info.as_str()].iter().filter(|s| !s.is_empty()).copied().collect::<Vec<_>>().join(" ");
     }
 
-    /// Human-readable lines for Help › System Info.
+    /// Human-readable lines for the System Info command.
     pub fn lines(&self) -> Vec<String> {
         let or = |s: &str, d: &str| if s.is_empty() || (s == "auto" && d == "auto") { tl!(d).to_string() } else { s.to_string() };
         let mut v = vec![

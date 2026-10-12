@@ -1,0 +1,7 @@
+Lunola Luma marks: limited project-use permission
+
+The official Lunola Luma app icon, product lockup and their platform-sized RGBA copies in `brand/lunola-luma/references/`, `brand/lunola-luma/assets/` and `assets/app-icon/` are project-owner supplied. Copyright and trademark rights remain with their respective owner(s). These marks are not covered by the upstream PhotoCraft MIT or Apache-2.0 source license and are not relicensed by it.
+
+Permission is granted to include and display the supplied marks, with only technical resizing and removal of isolated, near-transparent stray alpha pixels for platform packaging, in this Lunola Luma rebrand of the PhotoCraft source repository, its documentation, and application builds or distributions made from this rebrand. Do not redraw, recolour, or add effects to the icon or imply that the ArtCraft Team, Storytold or other upstream contributors created, sponsor, endorse or support Lunola Luma.
+
+No permission is granted to use the marks in unrelated products, forks, brands, domains, social accounts, advertising or merchandise. Any broader use requires separate written permission from the project owner. The original PhotoCraft source code and its copyright, license and third-party notices remain unchanged.

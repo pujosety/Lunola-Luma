@@ -88,17 +88,14 @@ impl MacMenu {
             if m.role == MenuRole::Window {
                 self.window = Some((sub.clone(), ids, native_menu::window_key(bar)));
             }
-            if matches!(m.role, MenuRole::Window | MenuRole::Help) {
-                special.push((m.role, sub));
+            if m.role == MenuRole::Window {
+                special.push(sub);
             }
         }
         menu.init_for_nsapp();
         // Only once the menu is NSApp's: muda looks the submenus up in the installed main menu.
-        for (role, sub) in special {
-            match role {
-                MenuRole::Window => sub.set_as_windows_menu_for_nsapp(),
-                _ => sub.set_as_help_menu_for_nsapp(),
-            }
+        for sub in special {
+            sub.set_as_windows_menu_for_nsapp();
         }
         self.menu = Some(menu);
         self.structure = native_menu::structure_key(bar);

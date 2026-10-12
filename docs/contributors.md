@@ -23,7 +23,7 @@ this page is the local copy of the decision.
 
 ## In PhotoCraft
 
-- The About window is `DialogKind::About` in `crates/ui-egui/src/dialogs.rs` (Help ▸ About PhotoCraft).
+- The About window is `DialogKind::About` in `crates/ui-egui/src/dialogs.rs` (File ▸ About Lunola Luma; the app menu on macOS).
   Its tab is the dialog field `tab` (`about`, `contributors`, `models`), so agents can switch it with
   `ui.dialog.set`. Labels are translated like the rest of the shell (`tl!` + `crates/ui-egui/src/i18n/*.tsv`).
 

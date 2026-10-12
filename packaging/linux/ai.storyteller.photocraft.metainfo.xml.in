@@ -5,16 +5,16 @@
   <id>ai.storyteller.photocraft</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>MIT OR Apache-2.0</project_license>
-  <name>PhotoCraft</name>
-  <summary>Edit photos and layered PSD documents</summary>
+  <name>Lunola Luma</name>
+  <summary>Professional Photo Editor</summary>
   <developer id="ai.storyteller">
-    <name>Learning Machines LLC</name>
+    <name>Lunola</name>
   </developer>
   <description>
     <p>
-      PhotoCraft is an open-source, native image editor with the familiar menus,
-      shortcuts, panels and tools professionals expect: layers, masks, adjustment
-      layers, layer styles, type and brushes.
+      Lunola Luma is a professional photo editor based on PhotoCraft by the ArtCraft Team and contributors. Its upstream source
+      remains under MIT OR Apache-2.0, with original attribution preserved. Lunola Luma is maintained separately
+      from the upstream PhotoCraft project.
     </p>
     <ul>
       <li>Open, edit and save layered PSD and PSB files</li>
@@ -25,11 +25,7 @@
   </description>
   <launchable type="desktop-id">ai.storyteller.photocraft.desktop</launchable>
   <icon type="stock">ai.storyteller.photocraft</icon>
-  <!-- Only url types known to appstream 0.15 (Ubuntu 22.04, where CI validates): no vcs-browser. -->
-  <url type="homepage">https://getartcraft.com/apps/photocraft</url>
-  <url type="bugtracker">https://github.com/storytold/photocraft/issues</url>
-  <url type="help">https://github.com/storytold/photocraft</url>
-  <url type="contact">https://discord.gg/artcraft</url>
+
   <categories>
     <category>Graphics</category>
     <category>RasterGraphics</category>
@@ -41,15 +37,12 @@
     <keyword>psd</keyword>
     <keyword>layers</keyword>
   </keywords>
-  <screenshots>
-    <screenshot type="default">
-      <caption>Editing The Great Wave off Kanagawa with type layers and adjustment layers</caption>
-      <image>https://raw.githubusercontent.com/storytold/photocraft/main/docs/images/photocraft-demo.jpg</image>
-    </screenshot>
-  </screenshots>
+
+
+
   <branding>
-    <color type="primary" scheme_preference="light">#9fd0ff</color>
-    <color type="primary" scheme_preference="dark">#1f64ba</color>
+    <color type="primary" scheme_preference="light">#745a25</color>
+    <color type="primary" scheme_preference="dark">#e7cd84</color>
   </branding>
   <requires>
     <display_length compare="ge">760</display_length>

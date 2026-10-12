@@ -198,7 +198,7 @@ pub fn display_at(displays: &[Display], rect: [f64; 4]) -> Option<u32> {
 }
 
 /// The monitor profile the canvas is actually shown in on one display, and why
-/// (`edit.colorSettings`'s `monitorStatus`, Help › System Info).
+/// (`edit.colorSettings`'s `monitorStatus`, System Info command).
 #[derive(Clone, Debug, PartialEq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MonitorStatus {
@@ -220,7 +220,7 @@ pub struct MonitorStatus {
 }
 
 impl MonitorStatus {
-    /// One line for Help › System Info and the Color Settings dialog: the profile (by the OS's
+    /// One line for the System Info command and the Color Settings dialog: the profile (by the OS's
     /// name for it in `auto`), the source and any reason. The display is said by the caller.
     pub fn summary(&self) -> String {
         let name = match (&self.profile_name, self.source) {
@@ -299,7 +299,7 @@ impl ColorState {
         }
     }
 
-    /// Every display with what its monitor profile resolves to (Help › System Info).
+    /// Every display with what its monitor profile resolves to (System Info command).
     pub fn display_statuses(&self) -> Vec<serde_json::Value> {
         self.displays
             .iter()

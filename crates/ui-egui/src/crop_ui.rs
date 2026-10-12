@@ -484,7 +484,7 @@ pub fn pending(app: &PhotocraftApp) -> bool {
 /// cancelled. Checked item by item in Photoshop 27.11: everything except Close, Save, Save As,
 /// Save a Copy; Undo, Redo, Toggle Last State, Search; Image › Crop (which commits the frame); the
 /// View menu but Proof Setup, Pixel Aspect Ratio (Correction), 32-bit Preview Options, Flip
-/// Horizontal and Screen Mode; the Window menu but Workspace and Adjustments; Help but System Info.
+/// Horizontal and Screen Mode; the Window menu but Workspace and Adjustments; System Info is command-search only.
 pub fn blocks(app: &PhotocraftApp, id: &str) -> bool {
     pending(app) && !available_while_pending(id)
 }

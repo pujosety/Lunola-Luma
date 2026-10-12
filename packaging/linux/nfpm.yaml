@@ -13,11 +13,12 @@ release: 1
 section: graphics
 priority: optional
 maintainer: ${PHOTOCRAFT_MAINTAINER}
-vendor: Learning Machines LLC
-homepage: https://getartcraft.com/apps/photocraft
+vendor: LUNOLA
+
 license: MIT OR Apache-2.0
 description: |-
-  Open-source, native image editor with familiar, professional tools.
+  Professional Photo Editor by LUNOLA.
+  Based on PhotoCraft; original author attribution and MIT OR Apache-2.0 notices are preserved.
   Layers, masks, adjustment layers, layer styles, type and brushes; opens and
   saves layered PSD/PSB files; 8/16/32-bit documents; GPU compositing (wgpu).
   Includes photocraft-cli, a headless converter and command runner.

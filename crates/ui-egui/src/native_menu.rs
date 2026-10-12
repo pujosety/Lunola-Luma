@@ -3,12 +3,12 @@
 //!
 //! Pure and platform-free, so it is tested everywhere and builds for the web; only the backend
 //! touches AppKit. What the layout does ([`mac_layout`]):
-//! - an **app menu** named PhotoCraft: About (from Help), Settings (Edit › Preferences), Language,
+//! - an **app menu** named Lunola Luma: About, Settings (Edit › Preferences), Language,
 //!   Appearance (Window › Theme), Services, Hide, Hide Others, Show All and Quit (File › Exit,
 //!   still the app's own `file.exit` so the unsaved-changes prompt runs). The other Craft apps
 //!   use the same app menu;
 //! - **Window** gets Minimize, Zoom and Bring All to Front, with the open documents after it
-//!   (where a Mac app lists its windows), and **Help** the system search field;
+//!   (where a Mac app lists its windows); no Help menu is exposed;
 //! - **clashes** with the system's keys (⌘H, ⌘M, ⌘W, ⌘,) are resolved in PhotoCraft's favour, and
 //!   reported; Hide and Minimize move to ⌃⌘H and ⌃⌘M, as Photoshop does.
 //!
@@ -28,7 +28,7 @@ use crate::PhotocraftApp;
 use crate::i18n::{Lang, tr, tr_id};
 use crate::menus::MenuItem;
 
-pub const APP_NAME: &str = "PhotoCraft";
+pub const APP_NAME: &str = "Lunola Luma";
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct MenuBar {
@@ -42,14 +42,13 @@ pub struct Menu {
     pub children: Vec<Node>,
 }
 
-/// What a top-level menu is for. macOS treats the app, Window and Help menus specially.
+/// What a top-level menu is for. macOS treats the app and Window menus specially.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub enum MenuRole {
     #[default]
     Normal,
     App,
     Window,
-    Help,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -455,8 +454,7 @@ pub fn mac_layout(bar: &MenuBar, lang: Lang) -> Layout {
     }
 
     if bar.menu(MenuRole::Window).is_none() {
-        let at = bar.menus.iter().position(|m| m.role == MenuRole::Help).unwrap_or(bar.menus.len());
-        bar.menus.insert(at, Menu { title: "Window".into(), role: MenuRole::Window, children: Vec::new() });
+        bar.menus.push(Menu { title: "Window".into(), role: MenuRole::Window, children: Vec::new() });
     }
     let minimize = match taken("Cmd+M", None) {
         Some(command) => {
@@ -484,8 +482,7 @@ pub fn mac_layout(bar: &MenuBar, lang: Lang) -> Layout {
     for m in &mut bar.menus {
         m.children = tidy(std::mem::take(&mut m.children));
     }
-    // A menu emptied by the moves goes away (the Help menu stays: it has the search field).
-    bar.menus.retain(|m| !m.children.is_empty() || m.role == MenuRole::Help);
+    bar.menus.retain(|m| !m.children.is_empty());
     Layout { bar, clashes }
 }
 
@@ -607,7 +604,7 @@ pub fn photocraft_layout(items: &[MenuItem], lang: Lang, language: &str) -> Layo
     bar.tag_submenu("Window", "Theme", ItemRole::Appearance);
     bar.tag_item("window.theme.toggle", ItemRole::Appearance);
     bar.tag_menu("Window", MenuRole::Window);
-    bar.tag_menu("Help", MenuRole::Help);
+
     let mut layout = mac_layout(&bar, lang);
     // Language goes right after Settings (before Appearance), as in the other Craft apps.
     if let Some(app_menu) = layout.bar.menus.iter_mut().find(|m| m.role == MenuRole::App) {
@@ -725,7 +722,7 @@ pub fn sync(app: &mut PhotocraftApp, ctx: &egui::Context) {
     let Some(menu) = app.services.native_menu.as_mut() else { return };
     if !menu.logged {
         for c in &layout.clashes {
-            log::info!("menu: {} is {} on macOS and {} in PhotoCraft; {}", c.shortcut, c.system, c.command, c.resolution);
+            log::info!("menu: {} is {} on macOS and {} in Lunola Luma; {}", c.shortcut, c.system, c.command, c.resolution);
         }
         menu.logged = true;
     }
@@ -800,7 +797,7 @@ mod tests {
     fn photocraft_gets_a_mac_app_menu() {
         let l = layout(true);
         let app = &l.bar.menus[0];
-        assert_eq!((app.title.as_str(), app.role), ("PhotoCraft", MenuRole::App));
+        assert_eq!((app.title.as_str(), app.role), ("Lunola Luma", MenuRole::App));
         assert_eq!(
             ids(&app.children),
             [
@@ -820,8 +817,8 @@ mod tests {
             ]
         );
         let quit = l.bar.find("file.exit").unwrap();
-        assert_eq!((quit.label.as_str(), quit.shortcut.as_deref()), ("Quit PhotoCraft", Some("Cmd+Q")));
-        assert_eq!(l.bar.find("help.about").unwrap().label, "About PhotoCraft");
+        assert_eq!((quit.label.as_str(), quit.shortcut.as_deref()), ("Quit Lunola Luma", Some("Cmd+Q")));
+        assert_eq!(l.bar.find("help.about").unwrap().label, "About Lunola Luma");
     }
 
     #[test]
@@ -829,10 +826,10 @@ mod tests {
         let l = layout(true);
         let by = |t: &str| l.bar.menus.iter().find(|m| m.title == t).unwrap();
         assert!(!ids(&by("File").children).contains(&"file.exit".to_string()));
-        assert!(!ids(&by("Help").children).contains(&"help.about".to_string()));
+        assert!(!ids(&by("File").children).contains(&"help.about".to_string()));
         assert!(!ids(&by("Edit").children).contains(&"[Preferences]".to_string()));
         let titles: Vec<&str> = l.bar.menus.iter().map(|m| m.title.as_str()).collect();
-        assert_eq!(titles, ["PhotoCraft", "File", "Edit", "Image", "Layer", "Type", "Select", "Filter", "View", "Window", "Help"]);
+        assert_eq!(titles, ["Lunola Luma", "File", "Edit", "Image", "Layer", "Type", "Select", "Filter", "View", "Window"]);
     }
 
     /// PhotoCraft keeps Photoshop's ⌘H, ⌘M, ⌘W and ⌘, (Hide Layers): the system items give way.

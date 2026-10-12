@@ -214,7 +214,7 @@ fn about_window(tab: &str, table: bool) -> (f32, f32, f32) {
     h.run_steps(6);
     let ok = h.query_all_by_role(Role::Button).find(|n| n.accesskit_node().label().as_deref() == Some("OK")).map(|n| n.rect()).expect("the OK button");
     // The dialog's contents: everything between its title and the OK button.
-    let title = h.query_all_by_label("About PhotoCraft").map(|n| n.rect()).find(|r| r.top() < ok.top()).expect("the dialog title");
+    let title = h.query_all_by_label("About Lunola Luma").map(|n| n.rect()).find(|r| r.top() < ok.top()).expect("the dialog title");
     let lowest = h
         .query_all(egui_kittest::kittest::by().predicate(|n| n.bounding_box().is_some()))
         .map(|n| n.rect())
@@ -231,6 +231,17 @@ fn about_and_models_end_where_their_content_does() {
         assert!(lowest > f32::MIN, "{tab}: nothing above OK");
         assert!(ok - lowest < 40.0, "{tab}: {} pt of blank space above OK", ok - lowest);
     }
+}
+
+#[test]
+fn about_page_credits_pujo_setyo() {
+    let mut h = Harness::builder().with_size(vec2(720.0, 520.0)).with_max_steps(64).build_eframe(|cc| {
+        crate::PhotocraftApp::setup_context(&cc.egui_ctx, Default::default());
+        crate::PhotocraftApp::new(photocraft_engine::Session::new(), crate::Services::default())
+    });
+    h.state_mut().ui.open_dialog(crate::state::DialogKind::About, serde_json::Map::new());
+    h.run_steps(6);
+    assert_eq!(h.query_all_by_label("By Pujo Setyo").count(), 1);
 }
 
 #[test]

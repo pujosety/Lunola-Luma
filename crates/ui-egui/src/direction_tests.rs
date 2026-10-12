@@ -101,15 +101,15 @@ fn the_shell_mirrors_in_a_right_to_left_ui() {
         let _dir = direction_scope(dir);
         let h = harness();
         let mid = 600.0;
-        let (file, help, toolbar, dock, workspace) = (x_of(&h, "File"), x_of(&h, "Help"), x_of(&h, "Toolbar"), dock_x(&h), text_x(&h, "Essentials"));
+        let (file, window, toolbar, dock, workspace) = (x_of(&h, "File"), x_of(&h, "Window"), x_of(&h, "Toolbar"), dock_x(&h), text_x(&h, "Essentials"));
         if dir == Dir::Rtl {
-            assert!(file > help, "File starts the menu bar at the right: {file} vs {help}");
+            assert!(file > window, "File starts the menu bar at the right: {file} vs {window}");
             assert!(toolbar > mid && dock < mid, "toolbox right, dock left: {toolbar}, {dock}");
-            assert!(workspace < help, "the workspace switcher is at the far (left) end: {workspace}");
+            assert!(workspace < window, "the workspace switcher is at the far (left) end: {workspace}");
         } else {
-            assert!(file < help, "{file} vs {help}");
+            assert!(file < window, "{file} vs {window}");
             assert!(toolbar < mid && dock > mid, "{toolbar}, {dock}");
-            assert!(workspace > help, "{workspace}");
+            assert!(workspace > window, "{workspace}");
         }
     }
 }
