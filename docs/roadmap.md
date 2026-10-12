@@ -17,9 +17,7 @@ dimension and area) and the ranked work list in [`gaps.md`](gaps.md); the one-pa
 preferences) and [`parity-checklist.md`](parity-checklist.md) (`cargo xtask parity`: menu wiring,
 628/628, which says nothing about behaviour).
 
-Status legend: ✅ done · 🟡 in progress · ⬜ not started. Hours are Opus 5.5 agent wall-clock hours
-for one agent working sequentially (calibration in
-[`target-app-parity.md`](target-app-parity.md#remaining-effort-and-calibration)).
+Status legend: ✅ done · 🟡 in progress · ⬜ not started. Effort figures are rough internal planning estimates, calibrated in [`target-app-parity.md`](target-app-parity.md#remaining-effort-and-calibration); they are scope indicators, not delivery-time commitments.
 
 **Stage: alpha** (ready for real work ~45%). Beta needs ~75% and reliable PSD: ~1,100–1,800 h.
 
@@ -27,7 +25,7 @@ for one agent working sequentially (calibration in
 
 The core workflows a typical Photoshop professional runs every day, checked end to end on the main
 platform (macOS, 0.6.0), including saving and reopening the work. Any **no**, or a **partial**
-that blocks the workflow, would make PhotoCraft pre-alpha.
+that blocks the workflow, would make Lunola Luma pre-alpha.
 
 | Core workflow | Works end to end? | Evidence | Hours to pass |
 |---|---|---|---:|
@@ -39,7 +37,7 @@ that blocks the workflow, would make PhotoCraft pre-alpha.
 | Exchange PSDs with Photoshop users: open a client PSD, edit, send a PSD back | partial (not blocking for alpha; blocking for beta) | Photoshop-authored oracle 133/256 render as Photoshop does; most exports open in Photoshop (smart objects verified), but some don't (#1281, #2469) | 0 for alpha; 150–250 h for beta (G1) |
 
 **Result: passes.** Every core workflow completes end to end and the work saves and reopens in
-PhotoCraft; the partial rows are depth and fidelity gaps with workarounds, not blockers. Ready for
+Lunola Luma; the partial rows are depth and fidelity gaps with workarounds, not blockers. Ready for
 real work is ~45%, inside the alpha band (~40–75%), but close to its floor.
 
 ## Milestones

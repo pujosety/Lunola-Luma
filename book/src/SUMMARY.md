@@ -1,6 +1,6 @@
 # Summary
 
-[PhotoCraft Documentation](README.md)
+[Lunola Luma Documentation](README.md)
 
 # Getting started
 

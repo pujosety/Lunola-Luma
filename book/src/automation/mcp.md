@@ -25,16 +25,11 @@ The release packages ship `photocraft-cli` alongside the desktop app, so no buil
 
 | Install | CLI |
 |---|---|
-| Windows (MSI) | `C:\Program Files\PhotoCraft\photocraft-cli.exe` by default (wherever you installed it otherwise), not on `PATH` |
+| Windows (MSI) | `C:\Program Files\Lunola Luma\photocraft-cli.exe` by default (wherever you installed it otherwise), not on `PATH` |
 | Linux (deb, rpm) | `/usr/bin/photocraft-cli` |
 | macOS | the separate `photocraft-cli-<version>-macos-<arch>.zip` release asset (the `.app` holds only the desktop app) |
 
-```sh
-# Windows, default install folder
-claude mcp add photocraft -- "C:\Program Files\PhotoCraft\photocraft-cli.exe" mcp --automation-read-root <dir> --automation-write-root <dir>
-# Linux, or macOS with the CLI unzipped onto PATH
-claude mcp add photocraft -- photocraft-cli mcp --automation-read-root <dir> --automation-write-root <dir>
-```
+Register the server in any MCP-compatible client's configuration using the executable path in the table and `mcp --automation-read-root <dir> --automation-write-root <dir>` as its arguments. Keep the read and write roots limited to the workspace you intend to share; the exact setup screen depends on the client.
 
 ## Security notes
 

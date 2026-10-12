@@ -2,7 +2,7 @@
 
 > **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-11 · **Change:** minor (Hand-tool flick panning) · **Target:** Adobe Photoshop 2026
 
-How PhotoCraft's direct manipulation compares with Photoshop 2026 (27.11.0): the toolbox, the
+How Lunola Luma's direct manipulation compares with Photoshop 2026 (27.11.0): the toolbox, the
 handles and modifier keys of each gesture, nudging, snapping, numeric precision, navigation,
 shortcuts and panels. Painting feel has its own checklist in [`brush-parity.md`](brush-parity.md)
 and right-click menus in [`context-menu-parity.md`](context-menu-parity.md). The design system
@@ -177,7 +177,7 @@ Triangle and Curvature Pen (minus legacy Rounded Rectangle and Targeted Adjustme
 | Measure | Value | Kind |
 |---|---|---|
 | Photoshop default shortcuts (`.kys`) | 58 tool keys, 107 menu commands with 115 shortcuts, 25 tool-area commands | measured |
-| PhotoCraft | ~199 shortcut assignments, 113 distinct modifier/F-key combos, 20 tool letters, 3 temporary-tool bindings | measured (source) |
+| Lunola Luma | ~199 shortcut assignments, 113 distinct modifier/F-key combos, 20 tool letters, 3 temporary-tool bindings | measured (source) |
 | Shortcut audit | 214 → 0 failures (2026-10-07) | measured then; not re-run here |
 | `.kys` import | done (`engine/src/kys.rs`) | |
 | Shortcut glyphs per platform | done (UI-217-19) | |

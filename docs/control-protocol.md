@@ -15,7 +15,7 @@ photocraft --control 7878 --control-token-file /private/path/photocraft-control.
   --automation-read-root /work/project --automation-write-root /work/project
 ```
 
-If the file does not exist, PhotoCraft creates it with a fresh 256-bit token. On Unix the new file is mode `0600`; on Windows, protect it with an appropriate user-only ACL. An existing file is reused. If neither a token nor token file is configured, PhotoCraft generates a token for that launch and writes it to standard error. `PHOTOCRAFT_CONTROL_TOKEN` and `PHOTOCRAFT_CONTROL_TOKEN_FILE` are the environment-variable equivalents.
+If the file does not exist, Lunola Luma creates it with a fresh 256-bit token. On Unix the new file is mode `0600`; on Windows, protect it with an appropriate user-only ACL. An existing file is reused. If neither a token nor token file is configured, Lunola Luma generates a token for that launch and writes it to standard error. `PHOTOCRAFT_CONTROL_TOKEN` and `PHOTOCRAFT_CONTROL_TOKEN_FILE` are the environment-variable equivalents.
 
 The first request on every TCP connection must authenticate. No other method is dispatched before this succeeds:
 
@@ -310,7 +310,7 @@ capability interface. Interactive desktop file pickers retain normal user-select
 JSON-lines envelope on stdio, or on `127.0.0.1:<port>` with `--port <port>` (loopback only; each
 authenticated connection shares the session). TCP uses the same first-frame `auth` exchange and
 token options as desktop control. Stdio does not require this TCP handshake because access is
-inherited from the process pipe. It is the fastest way for a script or agent to make many edits:
+inherited from the process pipe. It is the fastest way for a script or automation client to make many edits:
 no MCP framing, no app start-up per command. Configure its file access with the same
 `--automation-read-root` and `--automation-write-root` flags. Implementation:
 `crates/automation/src/rpc.rs`.

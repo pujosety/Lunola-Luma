@@ -1,6 +1,6 @@
 # Credits
 
-PhotoCraft is created and maintained by the ArtCraft team and PhotoCraft contributors. Project ownership, copyright, and licensing remain as stated in the repository's `README.md`, `NOTICE`, and license files. Every merged contribution is credited in the repository history and release notes.
+Lunola Luma is maintained by **Pujo Setyo**. It incorporates original upstream work by the ArtCraft team and contributors; their authorship, copyright, and licensing remain as stated in the repository's `NOTICE`, `ATTRIBUTION.md`, and license files. Every merged contribution is credited in the repository history and release notes.
 
 ## Documentation
 

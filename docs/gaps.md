@@ -1,10 +1,10 @@
-# Where PhotoCraft falls short of Photoshop
+# Where Lunola Luma falls short of Photoshop
 
 > **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-11 · **Change:** minor (G8: triple-, quadruple- and five-click type selection landed, TYPE-218-8 done; Czech UI localization evidence added to G13; G14: D5100 crop and Camera Raw tuning validation) · **Target:** Adobe Photoshop 2026
 
 Every known shortfall against Photoshop 2026 (27.11.0), one entry each, ranked by user impact
-on the way to beta. This is the work list agents pick from: take the highest-ranked entry that
-nobody is working on, and when you close part of one, update its evidence and estimate here and
+on the way to beta. This is the prioritized work list for contributors: take the highest-ranked
+entry that nobody is working on, and when part of one is complete, update its evidence and estimate here and
 the matching parity doc. Numbers come from [`target-app-parity.md`](target-app-parity.md);
 checklist ids (`TOOL-…`, `FILE-…`, `UI-…`) are rows in [`scorecard.md`](scorecard.md); `#n` are
 GitHub issues.
@@ -12,8 +12,7 @@ GitHub issues.
 No gap blocks alpha: the [alpha gate](roadmap.md#alpha-gate) passes. "Blocks beta" marks what
 stands between alpha and beta.
 
-Hours are Opus 5.5 agent-hours, one agent working sequentially, including tests. **Human** marks
-what an agent can't finish alone.
+Effort figures are rough planning estimates, including tests. **Owner input** marks work that needs product, licensing or hardware decisions.
 
 ## Summary
 
@@ -113,7 +112,7 @@ what an agent can't finish alone.
 - **Estimate:** 300–600 h. **Human:** owner decision #41 (model licences, local vs remote).
 
 ### G16. Plug-in compatibility
-- **Missing:** hosting Photoshop .8BF filters (#2647), UXP panels, CEP. PhotoCraft has its own
+- **Missing:** hosting Photoshop .8BF filters (#2647), UXP panels, CEP. Lunola Luma has its own
   sandboxed WebAssembly plug-in ABI v1 (`docs/plugins.md`), but ABI v2 (panels, progress, other
   layers) is missing (AUTO-219-6).
 - **Estimate:** 250–450 h. **Human:** .8BF needs native code under the isolated-`unsafe` rule.
