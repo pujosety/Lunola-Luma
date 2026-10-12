@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- AppStream metadata (software centres, Flathub). Template: package.sh and the Flatpak
+     manifest substitute @VERSION@ and @DATE@ from Cargo.toml and the build date. -->
+<component type="desktop-application">
+  <id>ai.storyteller.photocraft</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT OR Apache-2.0</project_license>
+  <name>Lunola Luma</name>
+  <summary>Professional Photo Editor</summary>
+  <developer id="ai.storyteller">
+    <name>Lunola</name>
+  </developer>
+  <description>
+    <p>
+      Lunola Luma is a professional photo editor based on PhotoCraft by the ArtCraft Team and contributors. Its upstream source
+      remains under MIT OR Apache-2.0, with original attribution preserved. Lunola Luma is maintained separately
+      from the upstream PhotoCraft project.
+    </p>
+    <ul>
+      <li>Open, edit and save layered PSD and PSB files</li>
+      <li>8-bit, 16-bit and 32-bit float documents in RGB, grayscale, CMYK and Lab</li>
+      <li>A GPU compositor with multithreaded filters</li>
+      <li>Every action is a command, scriptable from a CLI, a JSON control channel and an MCP server</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">ai.storyteller.photocraft.desktop</launchable>
+  <icon type="stock">ai.storyteller.photocraft</icon>
+
+  <categories>
+    <category>Graphics</category>
+    <category>RasterGraphics</category>
+    <category>Photography</category>
+  </categories>
+  <keywords>
+    <keyword>photo</keyword>
+    <keyword>image editor</keyword>
+    <keyword>psd</keyword>
+    <keyword>layers</keyword>
+  </keywords>
+
+
+
+  <branding>
+    <color type="primary" scheme_preference="light">#745a25</color>
+    <color type="primary" scheme_preference="dark">#e7cd84</color>
+  </branding>
+  <requires>
+    <display_length compare="ge">760</display_length>
+  </requires>
+  <supports>
+    <control>keyboard</control>
+    <control>pointing</control>
+    <control>tablet</control>
+  </supports>
+  <provides>
+    <binary>photocraft</binary>
+    <mediatype>application/x-photocraft</mediatype>
+    <mediatype>image/x-paintnet</mediatype>
+    <mediatype>image/openraster</mediatype>
+    <mediatype>image/vnd.adobe.photoshop</mediatype>
+    <mediatype>image/x-psb</mediatype>
+  </provides>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="@VERSION@" date="@DATE@"/>
+  </releases>
+</component>
