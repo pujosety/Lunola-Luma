@@ -2,7 +2,7 @@
 
 ## Release status
 
-There is no published Lunola Luma installer yet. The download links in the [project README](../README.md#downloads) are explicitly labelled as upstream PhotoCraft releases; they retain PhotoCraft branding and are not Lunola Luma packages. For now, build this source branch yourself or wait for a separately reviewed Lunola Luma release.
+Lunola Luma by Pujo Setyo 0.7.0 is being prepared as a draft release. No public installer is available until the release assets and checks are verified and the draft is explicitly published. Do not use unrelated upstream downloads as Lunola Luma packages. For now, build this repository from source.
 
 ## Build from source on Windows
 
@@ -31,7 +31,7 @@ The internal package and executable remain named `photocraft` for compatibility;
 - **Save:** use **File → Save** (`Ctrl+S`) for an existing writable document, or **File → Save As** (`Ctrl+Shift+S`) to choose a native `.pcraft` or supported interchange format. Keep a backup when testing on valuable work.
 - **Export:** choose **File → Export → Export As** to select a delivery format and its available settings. Reopen the exported file to confirm it matches the intended output.
 
-For automation or batch conversion, see the [CLI guide](development.md#headless-cli). Package/crate and command names remain PhotoCraft-compatible.
+For automation or batch conversion, see the [CLI guide](development.md#headless-cli). Internal package, crate, and command identifiers remain unchanged for compatibility.
 
 ## Menus and support information
 
@@ -53,7 +53,7 @@ $env:PHOTOCRAFT_CPU_CANVAS = "1"
 Remove-Item Env:PHOTOCRAFT_CPU_CANVAS
 ```
 
-The app keeps PhotoCraft-compatible settings and data paths to avoid breaking existing profiles. On Windows, logs are under `%APPDATA%\Photocraft\logs\`; see the [development guide](development.md#logs) for rotation and diagnostics.
+The app keeps legacy settings and data paths to avoid breaking existing profiles. On Windows, logs are under `%APPDATA%\Photocraft\logs\`; see the [development guide](development.md#logs) for rotation and diagnostics.
 
 ## More help
 

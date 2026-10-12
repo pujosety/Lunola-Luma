@@ -7,7 +7,7 @@ This record describes a real local build and GUI smoke test, not a signed instal
 - **Toolchain:** Windows 10; `cargo 1.96.1`, `rustc 1.96.1`.
 - **Formatting:** `cargo fmt --all --check` passed.
 - **Build:** `CARGO_INCREMENTAL=0 cargo build -j 1 -p photocraft -p photocraft-cli` passed after the final visible-brand wording changes.
-- **Windows icon references:** `packaging/windows/check-icons.ps1` passed. The freshly generated app and CLI resource scripts contain Lunola Luma product names, LUNOLA company metadata, and PhotoCraft-compatible executable filenames.
+- **Windows icon references:** `packaging/windows/check-icons.ps1` passed. The freshly generated app and CLI resource scripts contain Lunola Luma product names, LUNOLA company metadata, and legacy executable filenames.
 - **Launch and menu:** launched the fresh desktop build with `PHOTOCRAFT_CPU_CANVAS=1`; the window title and supplied LUNOLA/LUMA lockup rendered. The top-level menu bar contains File, Edit, Image, Layer, Type, Select, Filter, View and Window—no Help. The File menu contains **About Lunola Luma**; its dialog shows the **By Pujo Setyo** byline and no Contributors or Models tabs.
 - **About:** the fresh dialog shows the product description, **By Pujo Setyo**, version `0.7.0 (dev build)`, and `egui · wgpu · Lunola Luma Engine`; Contributors and Models tabs are absent.
 - **Version/help text:** `photocraft.exe --version` prints `Lunola Luma 0.7.0 (dev build)`; `photocraft-cli.exe --version` prints `Lunola Luma CLI 0.7.0 (dev build)`. CLI help is branded Lunola Luma; the legacy `photocraft-cli` executable command remains for compatibility.

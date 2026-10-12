@@ -1,6 +1,6 @@
 # OpenRaster documents
 
-PhotoCraft opens and saves OpenRaster (`.ora`), the layered format Krita, MyPaint, GIMP, Pinta
+Lunola Luma opens and saves OpenRaster (`.ora`), the layered format Krita, MyPaint, GIMP, Pinta
 and others share. File › Open, recent files, drops, Save and Save As, the CLI (`convert`, `info`,
 `batch`) and automation (`doc.open`, `doc.save`, MCP) all use the same reader and writer in
 `photocraft-io`. The browser build accepts `.ora` too. A file is recognised by its `mimetype`
@@ -49,7 +49,7 @@ kinds, the archive layout and malformed input. `crates/automation/tests/openrast
 reopens, edits and saves in place through the agent surface; the CLI test converts both ways.
 
 Real-file checks use Krita-authored oracles from
-[photocraft-corpus](https://github.com/storytold/photocraft-corpus) (`krita/`, made by
+the separately maintained test corpus (`krita/`, made by
 `tools/krita-oracles/generate.py`). Each Krita file carries Krita's rendering of itself in
 `mergedimage.png`:
 
@@ -61,7 +61,7 @@ KRITA_TEST_DIR=/path/to/photocraft-corpus/krita cargo test -p photocraft-io --te
 other four differ for known reasons listed in `crates/io/tests/krita_corpus.rs` (Krita's
 tie-break in Darker and Lighter Color, Hard Mix at a channel sum of exactly 1, and a
 linear-light 16-bit document that Krita blends in linear light). In the other direction,
-Krita opened every PhotoCraft re-export of those files and rendered 33 of them identically to
+Krita opened every Lunola Luma re-export of those files and rendered 33 of them identically to
 its original; the exception is Photoshop's Soft Light, which is written as `svg:soft-light`.
 MyPaint and GIMP files have not been checked yet.
 

@@ -1,19 +1,17 @@
-# PhotoCraft roadmap
+# Lunola Luma roadmap
 
 **Stage: alpha** · next: beta, ~30 points (ready for real work ~45% → ~75%, with reliable PSD) and ~1,100–1,800 h away
 
 > **Last reviewed:** 2026-10-11 · **Last updated:** 2026-10-11 · **Change:** minor (toolbox count 56 of 68, 12 missing) · **Target:** Adobe Photoshop 2026
 
-PhotoCraft's one-page summary of how close it is to Adobe Photoshop 2026 (27.11.0, measured from
+Lunola Luma's one-page summary of how close it is to Adobe Photoshop 2026 (27.11.0, measured from
 the installed app on 2026-10-10) at version 0.6.0. Detail: [target-app parity](docs/target-app-parity.md)
 (methodology, weights, evidence), [gaps](docs/gaps.md) (the ranked work list),
 [roadmap](docs/roadmap.md) (milestones, current focus), [scorecard](docs/scorecard.md) and
 [menu checklist](docs/parity-checklist.md) (both generated and measured),
 [architecture](docs/architecture.md).
 
-Hours are Opus 5.5 agent wall-clock hours for one agent working sequentially, calibrated from this
-repository's 1,004 merged PRs (see [calibration](docs/target-app-parity.md#remaining-effort-and-calibration)).
-About 80% of the work parallelizes.
+Effort figures are internal planning estimates calibrated against this repository's merged work history (see [calibration](docs/target-app-parity.md#remaining-effort-and-calibration)). They are scope indicators, not staffing or delivery-time promises; about 80% of the work can be parallelized.
 
 ## Headline numbers
 
@@ -28,7 +26,7 @@ About 80% of the work parallelizes.
 
 ### Readiness by audience
 
-| Audience | Ready % | Opus 5.5 agent-hours to ~95% | Work that dominates |
+| Audience | Ready % | Estimated effort units to ~95% | Work that dominates |
 |---|---:|---:|---|
 | Full target (ready for real work) | ~45% (additive weighted sum: 46%) | 2,300–4,100 | Everything below, plus AI tier, plug-in/scripting ecosystem, video, localization, hardware |
 | Mainstream practitioner | ~43% | 1,700–2,800 | Depth in the 11 weekly areas (1,180–2,000), performance budgets, stability on real machines, PSD exchange with Photoshop |
