@@ -79,10 +79,8 @@ pub fn wayland_file_drop_guidance(app: &mut PhotocraftApp) {
         "Native file drag-and-drop is not supported on Wayland yet. Use File › Open, or copy the image in your file manager and paste it with {paste}."
             .to_owned(),
     ];
-    let mut args = vec![("paste".to_owned(), paste_hint(app))];
-    if let Some(command) = &app.services.xwayland_command {
-        lines.push("To drop files, start Lunola Luma under XWayland: `{command}`".to_owned());
-        args.push(("command".to_owned(), command.clone()));
+    let args = vec![("paste".to_owned(), paste_hint(app))];
+    if app.services.xwayland_command.is_some() {
         lines.push("Or set Preferences › Performance › Linux display server to X11: Lunola Luma then always starts under XWayland.".to_owned());
     }
     let id = post(app, "Native file drag-and-drop is unavailable", lines, false, Some(WAYLAND_FILE_DROP_DISMISSED));
@@ -290,9 +288,10 @@ mod tests {
         // Pasting a copied file works on Wayland (#338), so the notice offers it.
         let paste = paste_hint(&app);
         assert!(guidance.contains(&format!("paste it with {paste}")), "{guidance}");
-        // The relaunch command is the one for this install (an AppImage here), not a guess.
-        assert!(guidance.contains("under XWayland: `WAYLAND_DISPLAY= '/apps/Photo Craft.AppImage'`"), "{guidance}");
+        // Point to the X11 preference rather than displaying a PhotoCraft command to users.
         assert!(guidance.contains("Linux display server to X11"), "{guidance}");
+        assert!(guidance.contains("Lunola Luma then always starts under XWayland"), "{guidance}");
+        assert!(!guidance.contains("photocraft"), "{guidance}");
         assert_eq!(app.ui.notices[0].dismiss_pref.as_deref(), Some(WAYLAND_FILE_DROP_DISMISSED));
         for i in 0..MAX_NOTICES {
             post(&mut app, format!("Transient {i}"), Vec::new(), false, None);

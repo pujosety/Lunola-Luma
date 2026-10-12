@@ -1,9 +1,10 @@
-# Contributors in the About window
+# Contributor and model metadata
 
-**About ▸ Contributors** credits everyone who contributed to PhotoCraft, and **About ▸ Models** credits
-the AI models named in `Co-Authored-By` trailers. This follows the shared craftrules standard
-[`standards/contributors.md`](https://github.com/storytold/craftrules/blob/main/standards/contributors.md);
-this page is the local copy of the decision.
+The generated contributor and model metadata is retained for project attribution, but the Lunola Luma
+About dialog no longer displays Contributors or Models tabs; it shows the product description,
+**By Pujo Setyo** byline, version, and engine attribution. This follows the shared craftrules standard
+[`standards/contributors.md`](https://github.com/storytold/craftrules/blob/main/standards/contributors.md)
+for collecting and verifying self-chosen names.
 
 ## Decision
 
@@ -13,19 +14,13 @@ this page is the local copy of the decision.
     username. **Generated** by `craftrules/scripts/contributors.py`; never hand-edit.
   - [`contributors/people.toml`](../contributors/people.toml): the names people chose for
     themselves. **Each contributor adds only their own entry**, in their own PR.
-- Each contributor gets one line: GitHub username (always), display name (opt-in, or their synced
-  GitHub profile name), real name (only if they told us), merged PRs, commits, lines added, lines
-  deleted, binary assets added, binary assets removed, first and last commit date.
-- The list is shown as a **grab bag** (names flowing as text) or a **table**, in the same order. It
-  sorts by name, PRs, commits, lines added, lines deleted, line delta, binary assets added/removed,
-  first or last commit date. The name toggle cycles **Username → Display name → Real name**; a
-  missing name falls back to `@username`. Alphabetical sorting is case-insensitive and ignores the `@`.
+- Each generated contributor record contains the GitHub username, consented display/real names, PR
+  and commit counts, line/binary change counts, and first/last commit dates.
 
-## In PhotoCraft
+## Application UI
 
-- The About window is `DialogKind::About` in `crates/ui-egui/src/dialogs.rs` (File ▸ About Lunola Luma; the app menu on macOS).
-  Its tab is the dialog field `tab` (`about`, `contributors`, `models`), so agents can switch it with
-  `ui.dialog.set`. Labels are translated like the rest of the shell (`tl!` + `crates/ui-egui/src/i18n/*.tsv`).
+- File ▸ About Lunola Luma displays the product identity and **By Pujo Setyo** only. Upstream
+  contributor attribution remains in the repository history, `contributors/` data, and legal notices.
 
 ## Credit yourself
 
@@ -44,8 +39,9 @@ or, with craftrules checked out next to `craft-apps/`:
 python3 ../../craftrules/scripts/contributors.py --add-me . --real-name "Your Name" --sync-github-name
 ```
 
-Names show after the next refresh: the script checks that each entry was committed by its own
-user (or by a maintainer with a `consent_source`). Delete your entry to remove your names.
+Names are included in the generated metadata after refresh: the script checks that each entry was
+committed by its own user (or by a maintainer with a `consent_source`). Delete your entry to remove
+your names.
 
 ## Refreshing (maintainers)
 

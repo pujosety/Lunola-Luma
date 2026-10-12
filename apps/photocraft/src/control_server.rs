@@ -20,11 +20,11 @@ pub fn start(port: u16, token: String, ctx: egui::Context) -> Receiver<ControlRe
     let listener = match TcpListener::bind(("127.0.0.1", port)) {
         Ok(l) => l,
         Err(e) => {
-            eprintln!("photocraft: control server failed to bind 127.0.0.1:{port}: {e}");
+            eprintln!("Lunola Luma: control server failed to bind 127.0.0.1:{port}: {e}");
             return rx;
         }
     };
-    eprintln!("photocraft: control server listening on 127.0.0.1:{port}");
+    eprintln!("Lunola Luma: control server listening on 127.0.0.1:{port}");
     std::thread::spawn(move || {
         let limiter = ConnectionLimiter::new(MAX_CONNECTIONS);
         let token = Arc::new(token);

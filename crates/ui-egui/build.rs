@@ -19,8 +19,10 @@ use serde_json::Value;
 
 fn main() {
     let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../contributors");
-    let json = read(&dir.join("contributors.json"), "the About window shows no contributors", |t| serde_json::from_str::<Value>(t).map_err(|e| e.to_string()))
-        .unwrap_or(Value::Null);
+    let json = read(&dir.join("contributors.json"), "the generated credits dataset contains no contributors", |t| {
+        serde_json::from_str::<Value>(t).map_err(|e| e.to_string())
+    })
+    .unwrap_or(Value::Null);
     let people =
         read(&dir.join("people.toml"), "contributors are shown by username only", |t| t.parse::<toml::Table>().map_err(|e| e.to_string())).unwrap_or_default();
     let out = std::path::PathBuf::from(std::env::var_os("OUT_DIR").unwrap_or_default()).join("credits.rs");

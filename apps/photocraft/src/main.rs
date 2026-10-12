@@ -197,7 +197,7 @@ fn main() -> eframe::Result {
             Some("--safe-gpu") => safe_gpu = true,
             Some("--in-window-menus") => in_window_menus = true,
             Some("--version") => {
-                println!("photocraft {}", photocraft_engine::build_info::long_version());
+                println!("Lunola Luma {}", photocraft_engine::build_info::long_version());
                 return Ok(());
             }
             // Old macOS passes a process serial number when launched from Finder.
@@ -212,7 +212,7 @@ fn main() -> eframe::Result {
     // Exit status 2 is the usual command-line usage error, so a launcher sees the failure.
     if let Some(code) = control_args_exit_code(&control_arg_errors) {
         for error in &control_arg_errors {
-            eprintln!("photocraft: {error}");
+            eprintln!("Lunola Luma: {error}");
         }
         std::process::exit(code);
     }
@@ -240,7 +240,7 @@ fn main() -> eframe::Result {
         && std::env::var_os("DISPLAY").is_some_and(|d| !d.is_empty())
         && linux_libs::available(linux_libs::DisplaySession::X11)
     {
-        eprintln!("photocraft: opening the window through Xwayland (Preferences › Performance › Linux display server)");
+        eprintln!("Lunola Luma: opening the window through Xwayland (Preferences › Performance › Linux display server)");
         linux_libs::DisplaySession::X11
     } else {
         session
@@ -259,21 +259,21 @@ fn main() -> eframe::Result {
         let token = match photocraft_automation::security::server_token(supplied.as_deref(), token_file.as_deref()) {
             Ok(token) => token,
             Err(e) => {
-                eprintln!("photocraft: cannot configure control authentication: {e}");
+                eprintln!("Lunola Luma: cannot configure control authentication: {e}");
                 std::process::exit(2);
             }
         };
         if let Some(path) = token_file {
-            eprintln!("photocraft: control token file: {}", path.display());
+            eprintln!("Lunola Luma: control token file: {}", path.display());
         } else if supplied.is_none() {
-            eprintln!("photocraft: control token: {token}");
+            eprintln!("Lunola Luma: control token: {token}");
         } else {
-            eprintln!("photocraft: using supplied control token");
+            eprintln!("Lunola Luma: using supplied control token");
         }
         let workspace = match photocraft_automation::AuthorizedWorkspace::new(automation_read_root.as_deref(), automation_write_root.as_deref()) {
             Ok(workspace) => workspace,
             Err(error) => {
-                eprintln!("photocraft: cannot configure automation workspace: {error}");
+                eprintln!("Lunola Luma: cannot configure automation workspace: {error}");
                 std::process::exit(2);
             }
         };

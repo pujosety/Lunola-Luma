@@ -15,7 +15,8 @@
 
 - Removed the Help top-level menu from the custom menu bar and macOS native menu setup.
 - Moved About Lunola Luma to File. System Info remains searchable.
-- About now displays **By Pujo Setyo** as the Lunola Luma project byline; the original PhotoCraft contributor data, author credits, and legal notices remain intact.
+- About displays **By Pujo Setyo** as the Lunola Luma project byline; the Contributors and Models tabs are removed. Original PhotoCraft contributor data, author credits, and legal notices remain intact.
+- Replaced visible product wording in About's engine attribution, GUI/CLI version output, startup/error labels, and CLI help with Lunola Luma. Compatibility-oriented executable names, settings/log identifiers, and upstream/legal attribution remain unchanged.
 - Removed Discord/community UI links and controls without removing required plain-text attribution to PhotoCraft and its authors.
 
 ## Distribution and compatibility
@@ -26,7 +27,8 @@
 
 ## Verification
 
-- Windows `cargo fmt --all --check` and `CARGO_INCREMENTAL=0 cargo build -p photocraft -p photocraft-cli`: passed.
-- Full UI library tests: 2,186 passed, 1 failed, 10 ignored. The sole failure is the Czech duplicate `"Tool"` catalog key, also present in the recorded baseline; details are in [`windows-smoke-test.md`](windows-smoke-test.md).
+- Windows `cargo fmt --all --check` and `CARGO_INCREMENTAL=0 cargo build -j 1 -p photocraft -p photocraft-cli`: passed. GUI and CLI report `0.7.0 (dev build)` under Lunola Luma names.
+- Full UI library tests: 2,184 passed, 1 failed, 10 ignored. The sole failure is the Czech duplicate `"Tool"` catalog key, also present in the recorded baseline; details are in [`windows-smoke-test.md`](windows-smoke-test.md).
+- The four targeted Wayland-guidance tests passed; the live About dialog shows the byline, the Lunola Luma Engine attribution, and no Contributors or Models tabs.
 - Fresh Windows GUI run confirmed no Help menu, About under File, and opening/saving a synthetic PNG. CLI conversion PNG → `.pcraft` → WebP was reopened and inspected successfully.
 - Windows shortcut icon-reference check and XML well-formedness checks passed. WiX/MSI build and signing were not verified because `dotnet`/`wix` were unavailable. See the [smoke-test report](windows-smoke-test.md).

@@ -160,15 +160,8 @@ pub fn show(app: &mut PhotocraftApp, ctx: &egui::Context) {
             if d.kind == DialogKind::NewDocument {
                 ui.set_min_width(800.0);
             }
-            // The About window: room for the contributor table, the same width on every tab.
-            let about_tabs = d.kind == DialogKind::About && d.fields.get("systemInfo").and_then(Value::as_bool) != Some(true);
-            if about_tabs {
-                ui.set_min_width(700.0);
-            }
             ui.set_max_width(wide.unwrap_or(if d.kind == DialogKind::NewDocument {
                 800.0
-            } else if about_tabs {
-                700.0
             } else if d.kind == DialogKind::LayerStyle || d.fields.contains_key("__export") || crate::color_picker_ui::owns(&d.fields) {
                 600.0
             } else {
@@ -208,22 +201,7 @@ pub fn show(app: &mut PhotocraftApp, ctx: &egui::Context) {
                     }
                 }
                 DialogKind::About => {
-                    // Tabs About · Contributors · Models (craftrules standards/contributors.md). The
-                    // tab is a dialog field, so automation can switch it with `ui.dialog.set`.
-                    let tab = about_tab(&fields);
-                    let mut chosen = tab;
-                    ui.horizontal(|ui| {
-                        for (key, label) in [("about", tl!("About")), ("contributors", tl!("Contributors")), ("models", tl!("Models"))] {
-                            if crate::widgets::pill_tab(ui, label, tab == key).clicked() {
-                                chosen = key;
-                            }
-                        }
-                    });
-                    if chosen != tab {
-                        fields.insert("tab".into(), json!(chosen));
-                    }
-                    ui.add_space(8.0);
-                    about_tab_body(app, ui, chosen);
+                    about_body(ui);
                 }
                 DialogKind::Command if crate::guide_layout_ui::owns(&fields) => outcome = crate::guide_layout_ui::body(app, ui, &mut fields, interactive),
                 DialogKind::Command if crate::fill_ui::owns(&fields) => crate::fill_ui::body(app, ui, &mut fields),
@@ -397,28 +375,13 @@ pub fn show(app: &mut PhotocraftApp, ctx: &egui::Context) {
     ctx.data_mut(|m| m.insert_temp(egui::Id::new(RECTS), shown));
 }
 
-/// The About window's tabs, as stored in its `tab` field.
-pub const ABOUT_TABS: [&str; 3] = ["about", "contributors", "models"];
-
-/// The About tab to show: the `tab` field when it names one, otherwise "about".
-fn about_tab(fields: &serde_json::Map<String, Value>) -> &'static str {
-    let want = fields.get("tab").and_then(Value::as_str).unwrap_or("");
-    ABOUT_TABS.iter().copied().find(|t| *t == want).unwrap_or("about")
-}
-
-/// One About tab's contents: the credits lists, or the product blurb and links.
-fn about_tab_body(app: &mut PhotocraftApp, ui: &mut egui::Ui, tab: &str) {
-    match tab {
-        "contributors" => crate::credits::contributors_ui(app, ui),
-        "models" => crate::credits::models_ui(ui),
-        _ => {
-            ui.label(tl!("Lunola Luma — an open-source, native image editor written in Rust."));
-            ui.label(egui::RichText::new("By Pujo Setyo").strong());
-            ui.label(crate::i18n::fmt(tl!("Version {version}"), &[("version", &photocraft_engine::build_info::long_version())]));
-            ui.add_space(18.0);
-            ui.weak("egui · wgpu · photocraft-engine");
-        }
-    }
+/// Product identity and byline shown in the About dialog.
+fn about_body(ui: &mut egui::Ui) {
+    ui.label(tl!("Lunola Luma — an open-source, native image editor written in Rust."));
+    ui.label(egui::RichText::new("By Pujo Setyo").strong());
+    ui.label(crate::i18n::fmt(tl!("Version {version}"), &[("version", &photocraft_engine::build_info::long_version())]));
+    ui.add_space(18.0);
+    ui.weak("egui · wgpu · Lunola Luma Engine");
 }
 
 /// The dialog title as shown: [`title`] in the UI language.

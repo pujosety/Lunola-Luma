@@ -1,7 +1,5 @@
-//! The About window's credits: every contributor (GitHub login always; display and real names only
-//! with recorded consent) and the AI models that helped. The tables are baked into the binary by
-//! build.rs from contributors/contributors.json (craftrules standards/contributors.md); nothing is
-//! read at run time. UI strings go through `tl!` (column abbreviations like `+LOC` stay as they are).
+//! Contributor and AI-model metadata plus rendering helpers, generated from the repository's
+//! attribution data. The About dialog presents only Lunola Luma's product identity and byline.
 
 use std::cmp::Ordering;
 
@@ -247,7 +245,7 @@ const SORT_ARROW_W: f32 = 12.0;
 const CELL_PAD: f32 = 6.0;
 const NAME_MIN_W: f32 = 110.0;
 
-/// About ▸ Contributors: a name toggle, a sort, and the list as a grab bag or a table.
+/// Render the generated contributor credits as a name toggle and list.
 pub fn contributors_ui(app: &mut PhotocraftApp, ui: &mut egui::Ui) {
     contributors_in(app, ui, CONTRIBUTORS, TOTAL_COMMITS);
 }
@@ -483,7 +481,7 @@ fn header_cell(ui: &mut egui::Ui, t: &crate::theme::Tokens, label: &str, numeric
     resp
 }
 
-/// About ▸ Models: AI models credited in Co-Authored-By trailers.
+/// Render AI model metadata derived from Co-Authored-By trailers.
 pub fn models_ui(ui: &mut egui::Ui) {
     models_in(ui, MODELS, TOTAL_COMMITS);
 }

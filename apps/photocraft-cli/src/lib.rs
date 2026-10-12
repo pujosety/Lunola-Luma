@@ -12,7 +12,7 @@ use photocraft_io::ExportOptions;
 use serde_json::{Value, json};
 
 pub const USAGE: &str = "\
-photocraft-cli: headless Photocraft
+Lunola Luma CLI: headless image processing
 
 USAGE:
   photocraft-cli convert <in> <out> [--format <ext>] [--quality <1-100>] [--tiff-layers] [--tga-bits <24|32>]
@@ -40,7 +40,7 @@ USAGE:
       List the engine command registry.
   photocraft-cli mcp [--bridge <127.0.0.1:port>] [--control-token <64-hex> | --control-token-file <path>]
       [--automation-read-root <dir>] [--automation-write-root <dir>]
-      Run the MCP server on stdio (headless engine, or bridge to a running `photocraft --control <port>`).
+      Run the MCP server on stdio (headless engine, or bridge to a running Lunola Luma desktop session).
   photocraft-cli serve [--port <port>] [--control-token <64-hex> | --control-token-file <path>]
       [--automation-read-root <dir>] [--automation-write-root <dir>]
       Keep one headless session open and answer JSON lines ({\"id\",\"method\",\"params\"}) on stdio,
@@ -170,7 +170,7 @@ pub fn run(args: &[String], out: &mut dyn Write, err: &mut dyn Write) -> i32 {
             return 0;
         }
         "--version" | "version" => {
-            let _ = writeln!(out, "photocraft-cli {}", photocraft_engine::build_info::long_version());
+            let _ = writeln!(out, "Lunola Luma CLI {}", photocraft_engine::build_info::long_version());
             return 0;
         }
         _ => {}
@@ -517,12 +517,12 @@ fn serve(a: &Args, err: &mut dyn Write) -> R {
             let (supplied, token_file) = security::token_inputs(a.get("--control-token").map(str::to_owned), a.get("--control-token-file").map(PathBuf::from));
             let token = security::server_token(supplied.as_deref(), token_file.as_deref()).map_err(|e| e.to_string())?;
             if let Some(path) = &token_file {
-                let _ = writeln!(err, "photocraft-cli control token file: {}", path.display());
+                let _ = writeln!(err, "Lunola Luma CLI control token file: {}", path.display());
             } else if supplied.is_none() {
-                let _ = writeln!(err, "photocraft-cli control token: {token}");
+                let _ = writeln!(err, "Lunola Luma CLI control token: {token}");
             }
             photocraft_automation::rpc::serve_tcp(&addr, h, token, |local| {
-                let _ = writeln!(err, "photocraft-cli serving on {local}");
+                let _ = writeln!(err, "Lunola Luma CLI serving on {local}");
             })
             .map_err(|e| e.to_string())
         }

@@ -140,11 +140,12 @@ nothing is silently dropped from `.pcraft` saves. When you add a doc field, add 
 `crates/format/src/manifest.rs` and `convert.rs` with `#[serde(default)]` so older files still load.
 If the field has a PSD equivalent, map it in `crates/io` too, and keep unknown PSD blocks verbatim.
 
-## Contributor credits (About window)
+## Contributor metadata and attribution
 
-- About ▸ Contributors/Models are compiled into the binary from `contributors/contributors.json`
-  (commit stats; generated, never hand-edit) and `contributors/people.toml` (names people chose for
-  themselves). See `docs/contributors.md`.
+- Contributor and model metadata are compiled from `contributors/contributors.json` (generated
+  commit statistics) and `contributors/people.toml` (names people chose for themselves). The About
+  dialog no longer displays contributor/model tabs; project and upstream attribution remain
+  documented in `docs/contributors.md`.
 - **Agents working for a contributor:** when you prepare a PR, check whether your human's GitHub
   username has a `[people.<username>]` entry in `contributors/people.toml`. If not, ask them once
   whether they want to be credited by more than their username: a real name, a display name, and/or
