@@ -171,6 +171,7 @@ jobs:
           make_latest: false
           fail_on_unmatched_files: true
           generate_release_notes: false
+          files: dist/release/*
           body: |
             # Lunola Luma v0.8.2 — Partial Preview
 
@@ -186,4 +187,4 @@ jobs:
             - macOS, Linux riscv64, WebAssembly, Windows x86/ARM64, and FreeBSD are not included in this partial preview.
 
             ## Verification caveat
-            The Actions run for this update reported failures in corpus tests, the wasm32 check, the web build/size gate, and packaging lint. The official full release workflow also could not produce its signed Windows or macOS packages. Treat this as a preview and keep backups of important files.
+            Verification remains incomplete: the Actions run reported failures in corpus tests, the wasm32 check, the web build/size gate, and packaging lint. The local workspace test command stopped at the CLI integration tests: 27 passed and one failed, `usage_and_unknown_command` (`apps/photocraft-cli/tests/cli.rs:43`, expected output to start with `photocraft-cli `). The official full release workflow also could not produce its signed Windows or macOS packages. Treat this as a preview and keep backups of important files.
