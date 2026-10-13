@@ -23,6 +23,7 @@
       <li>Every action is a command, scriptable from a CLI, a JSON control channel and an MCP server</li>
     </ul>
   </description>
+  <url type="homepage">https://github.com/pujosety/Lunola-Luma</url>
   <launchable type="desktop-id">ai.storyteller.photocraft.desktop</launchable>
   <icon type="stock">ai.storyteller.photocraft</icon>
 
