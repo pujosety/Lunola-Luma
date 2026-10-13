@@ -17,9 +17,7 @@ dimension and area) and the ranked work list in [`gaps.md`](gaps.md); the one-pa
 preferences) and [`parity-checklist.md`](parity-checklist.md) (`cargo xtask parity`: menu wiring,
 628/628, which says nothing about behaviour).
 
-Status legend: ✅ done · 🟡 in progress · ⬜ not started. Hours are Opus 5.5 agent wall-clock hours
-for one agent working sequentially (calibration in
-[`target-app-parity.md`](target-app-parity.md#remaining-effort-and-calibration)).
+Status legend: ✅ done · 🟡 in progress · ⬜ not started. Effort figures are rough internal planning estimates, calibrated in [`target-app-parity.md`](target-app-parity.md#remaining-effort-and-calibration); they are scope indicators, not delivery-time commitments.
 
 **Stage: alpha** (ready for real work ~45%). Beta needs ~75% and reliable PSD: ~1,100–1,800 h.
 
@@ -27,7 +25,7 @@ for one agent working sequentially (calibration in
 
 The core workflows a typical Photoshop professional runs every day, checked end to end on the main
 platform (macOS, 0.6.0), including saving and reopening the work. Any **no**, or a **partial**
-that blocks the workflow, would make PhotoCraft pre-alpha.
+that blocks the workflow, would make Lunola Luma pre-alpha.
 
 | Core workflow | Works end to end? | Evidence | Hours to pass |
 |---|---|---|---:|
@@ -39,7 +37,7 @@ that blocks the workflow, would make PhotoCraft pre-alpha.
 | Exchange PSDs with Photoshop users: open a client PSD, edit, send a PSD back | partial (not blocking for alpha; blocking for beta) | Photoshop-authored oracle 133/256 render as Photoshop does; most exports open in Photoshop (smart objects verified), but some don't (#1281, #2469) | 0 for alpha; 150–250 h for beta (G1) |
 
 **Result: passes.** Every core workflow completes end to end and the work saves and reopens in
-PhotoCraft; the partial rows are depth and fidelity gaps with workarounds, not blockers. Ready for
+Lunola Luma; the partial rows are depth and fidelity gaps with workarounds, not blockers. Ready for
 real work is ~45%, inside the alpha band (~40–75%), but close to its floor.
 
 ## Milestones
@@ -57,7 +55,7 @@ real work is ~45%, inside the alpha band (~40–75%), but close to its floor.
 | M8 PSD v2 | 🟡 | adjustments (incl. Selective Color, Color Lookup), fills, effects, patterns, text, shapes, smart objects, alpha channels; oracle floors 146/170 (io), 236/309 (psd-tools), 133/256 (Photoshop-authored) |
 | M9 Text, vector, styles | 🟡 | type engine + Warp Text, shapes / pen / paths, all 10 effects on CPU and GPU (parity ≤1/255, 30/31 corpus effect files on the GPU) |
 | M10 Smart features | 🟡 | classical Select Subject / Object, content-aware fill and scale, healing, auto-align / auto-blend; ML backend not started |
-| M11 Automation + formats | 🟡 | MCP (headless + live bridge), batch, Image Processor, prefs over MCP; DoD test passes (10 agent tasks over MCP, `automation/tests/agent_tasks.rs`); since 2026-10-07 the CLI rejects unknown flags and answers `<subcommand> --help`, batch runs report same-name outputs instead of overwriting them, MCP `command_batch` steps can start background jobs, and headless saves never flatten over the opened file; JP2 / DICOM / DPX / C2PA pending |
+| M11 Automation + formats | 🟡 | MCP (headless + live bridge), batch, Image Processor, prefs over MCP; DoD test passes (10 MCP automation workflows, `automation/tests/agent_tasks.rs`); since 2026-10-07 the CLI rejects unknown flags and answers `<subcommand> --help`, batch runs report same-name outputs instead of overwriting them, MCP `command_batch` steps can start background jobs, and headless saves never flatten over the opened file; JP2 / DICOM / DPX / C2PA pending |
 | M12 Pro parity | 🟡 | CMYK / Lab / Indexed / Bitmap / Duotone, ICC + soft proofing, channels + Quick Mask, smart-object stack modes, artboards, layer comps; print, HDR, timeline pending; Photomerge is implemented, with real-world quality validation still open |
 
 Releases: 0.1.0 (2026-10-02), 0.2.0 (2026-10-05, first signed and notarized), 0.3.0 (10-07),
@@ -106,7 +104,7 @@ Each milestone has a **definition of done (DoD)** and must leave `main` green on
 | **M8** | PSD v2 | adjustment layers, fill layers, lfx2 effects (descriptor parser), text (EngineData) preserve+render, smart objects, vector masks | Composite-oracle pass rate ≥90% on corpus |
 | **M9** | Text, vector, styles | parley text layers, shapes/pen/paths, all 10 layer effects on GPU | Visual goldens; PSD text round-trip |
 | **M10** | Smart features | `ml` (ort native / ort-web on the web), Select Subject/Object/Sky, Remove BG, Remove tool, content-aware fill, healing, AI denoise, RAW develop | Quality benchmarks on a public dataset; timing budgets |
-| **M11** | Automation + formats | MCP server, batch, scripting, remaining formats (JP2, DICOM, DPX…), C2PA | An agent completes 10 scripted edit tasks via MCP |
+| **M11** | Automation + formats | MCP server, batch, scripting, remaining formats (JP2, DICOM, DPX…), C2PA | An MCP automation client completes 10 scripted edit tasks |
 | **M12** | Pro parity | CMYK/Lab UI, print, HDR display/merge, Photomerge quality validation, timeline, layer comps, artboards, symmetry, neural filters | `xtask parity` ≥ 90% of Photoshop menu checklist |
 
 ## Revision history

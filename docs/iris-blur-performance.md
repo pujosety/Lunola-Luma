@@ -1,23 +1,23 @@
 # Iris Blur computation (2026-10-10)
 
 Base: `7722172585a01cbdb93c06f0f5ff2634fcb17999` (freshly fetched
-`origin/main` and `upstream/main`). Branch: `codex/iris-blur-invariants-20261010`.
+`origin/main` and `upstream/main`).
 
 ## Upstream investigation
 
 Open, closed and merged issues/PRs were searched for Iris, Blur Gallery, blur,
 sampling, portable and SIMD. No overlapping Iris Blur change was found.
-Gallery history includes [PR #1010](https://github.com/storytold/photocraft/pull/1010),
+Gallery history includes source PR #1010,
 which normalizes nonfinite pin angles and maps nonfinite distance to infinity
 (part of #916). Its behaviour is retained in prepared Iris geometry and tested.
-[PR #1524](https://github.com/storytold/photocraft/pull/1524), merged as
+source PR #1524, merged as
 `d651be1393b709d638dd9d0e4824a420f795d3ae`, is the merged SIMD-related work:
-the [review](https://github.com/storytold/photocraft/pull/1524#issuecomment-6072959394)
+the source PR #1524
 requested removal of the AVX2/pulp portion because it did not improve complete
 filter timings. The author removed that portion before merge. Main has portable
 contiguous Mosaic row reads, with exact-output tests, rather than a SIMD subsystem.
 
-[PR #1602](https://github.com/storytold/photocraft/pull/1602) carries fixed-channel
+source PR #1602 carries fixed-channel
 Gaussian/resize accumulators from #1511, allowing compiler vectorization without
 unsafe code or a new dependency. Those box accumulators use f32; Gallery uses f64
 running sums for tile independence, so they are not an exact drop-in replacement.
@@ -25,9 +25,9 @@ No nightly `std::simd`, architecture-specific instructions, new dependency or
 `target-cpu=native` is introduced here. Transitive codec SIMD dependencies do not
 provide a Gallery kernel.
 
-[PR #1899](https://github.com/storytold/photocraft/pull/1899) already runs filter
+source PR #1899 already runs filter
 previews on a cancellable worker, with a 150 ms settle delay for stale requests.
-[PR #2207](https://github.com/storytold/photocraft/pull/2207) addresses preview scale.
+source PR #2207 addresses preview scale.
 This change leaves the worker, proxy size, engine command and UI interactions intact.
 
 ## Algorithm and numerical contract
@@ -81,7 +81,7 @@ The unchanged base executable is retained locally for repeat comparisons. Use
 the same harness on the base revision to reproduce a comparison.
 
 ```powershell
-$env:CARGO_TARGET_DIR = 'target/agent-iris-blur'
+$env:CARGO_TARGET_DIR = 'target/iris-blur-benchmark'
 $env:RAYON_NUM_THREADS = '8'
 cargo run --release -p photocraft-algo --example bench_iris -- 6000 4000 3
 cargo run --release -p photocraft-algo --example bench_iris -- 6000 6000 3
@@ -92,7 +92,7 @@ cargo test --release -p photocraft-algo iris_profile_baseline_stages -- --ignore
 ```
 
 The 2000×1334 run is a preview-sized stress workload at fixed blur parameters.
-PhotoCraft actually reduces 24 MP by factor four to 1500×1000 (its factor is the
+Lunola Luma actually reduces 24 MP by factor four to 1500×1000 (its factor is the
 ceiling of sqrt(pixels/2,500,000)). The separate 1500×1000 run models that existing
 filtered-proxy workload directly: top-level document blur 15/80/300 becomes
 3.75/20/75; the nested multiple-pin JSON amounts retain their existing values.
@@ -230,7 +230,7 @@ so command panic-hunt and UI screenshot checks are not triggered.
 native CPU/GPU examples. Its regression comparison was skipped because the
 checked-in baseline is for an Apple M4 Pro, while this machine is Windows/Ryzen
 with a Radeon RX 9060 XT. Quick mode does not enforce the full-size budgets.
-Results are retained locally in `target/agent-iris-blur/perf/results.json`;
+Results are retained locally in `target/iris-blur-benchmark/perf/results.json`;
 the Iris base/candidate measurements above provide this change's comparison.
 Final complete wasm and algorithm formatting checks also pass.
 

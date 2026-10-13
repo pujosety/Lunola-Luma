@@ -450,7 +450,9 @@ pub fn body(app: &mut crate::PhotocraftApp, ui: &mut egui::Ui, f: &mut Map<Strin
         for name in CATEGORIES.iter().map(|c| c.0).chain(["Saved"]) {
             let on = cat == name;
             let label = if name == "Saved" { tl!("Saved") } else { tl!(name) };
-            let r = ui.add(egui::Label::new(RichText::new(label).size(13.0).color(if on { t.text } else { t.text_dim })).sense(Sense::click()));
+            let r = ui
+                .add(egui::Label::new(RichText::new(label).size(13.0).color(if on { t.text } else { t.text_dim })).selectable(false).sense(Sense::click()))
+                .on_hover_cursor(egui::CursorIcon::PointingHand);
             if on {
                 ui.painter().line_segment([r.rect.left_bottom() + vec2(0.0, 3.0), r.rect.right_bottom() + vec2(0.0, 3.0)], Stroke::new(2.0, t.text));
             }
@@ -545,7 +547,9 @@ pub fn body(app: &mut crate::PhotocraftApp, ui: &mut egui::Ui, f: &mut Map<Strin
             ui.set_width(260.0);
             ui.label(RichText::new(tl!("PRESET DETAILS")).size(11.0).color(t.text_faint));
             ui.add_space(4.0);
-            let mut name = get_s(f, "name", tl!("Untitled-1"));
+            // Keep the canonical English default in state; only the TextEdit shows a translation.
+            let raw = get_s(f, "name", "Untitled-1");
+            let mut name = if raw == "Untitled-1" { tl!("Untitled-1").to_string() } else { raw };
             let r = ui.add(egui::TextEdit::singleline(&mut name).desired_width(250.0).font(egui::FontId::proportional(15.0)));
             if r.changed() {
                 f.insert("name".into(), json!(name));
@@ -584,9 +588,11 @@ pub fn body(app: &mut crate::PhotocraftApp, ui: &mut egui::Ui, f: &mut Map<Strin
                     set_size(f, "height", h, &unit, ppi);
                 }
                 ui.add_space(6.0);
-                small_label(ui, tl!("Orientation"));
+                // Page orientation (≠ Type › Orientation → Hướng chữ).
+                small_label(ui, crate::i18n::tr_ctx(crate::i18n::current(), "document", "Orientation"));
                 let (w, h) = (get_f(f, "width", 1920.0), get_f(f, "height", 1080.0));
                 for (icon, portrait) in [("rectangle-vertical", true), ("rectangle-horizontal", false)] {
+                    // Tooltip strings are looked up via `icons::button` → `tl!`; enum/state is aspect swap only.
                     if icons::button(ui, icon, 24.0, (h > w) == portrait, if portrait { "Portrait" } else { "Landscape" }).clicked() && (h > w) != portrait {
                         swap_size(f);
                     }
@@ -770,9 +776,16 @@ mod tests {
 
     #[test]
     fn new_document_depth_labels_and_tooltips_are_translated() {
+        // Bit-depth labels are unit/number strings that some languages legitimately write exactly
+        // like the English source (Turkish and Italian "8 bit"); they only need a catalog entry there.
+        const SAME_AS_SOURCE: &[(&str, &str)] = &[("tr", "8 bit"), ("tr", "16 bit"), ("it", "8 bit"), ("it", "16 bit")];
         for lang in crate::i18n::Lang::all().filter(|lang| lang.code() != "en") {
             for (_, label, tooltip) in DEPTH_OPTIONS {
-                assert_ne!(crate::i18n::tr(lang, label), *label, "{}: {label}", lang.code());
+                if SAME_AS_SOURCE.contains(&(lang.code(), *label)) {
+                    assert!(crate::i18n::has(lang, label), "{}: {label}", lang.code());
+                } else {
+                    assert_ne!(crate::i18n::tr(lang, label), *label, "{}: {label}", lang.code());
+                }
                 assert_ne!(crate::i18n::tr(lang, tooltip), *tooltip, "{}: {tooltip}", lang.code());
             }
         }
@@ -1305,6 +1318,21 @@ mod tests {
             click_at(&mut h, egui::pos2(label.right() + gap + 12.0, label.center().y));
             enter(&mut h);
             assert_eq!(created(&h), (256, 512, 72.0));
+        }
+
+        #[test]
+        fn hovering_preset_tabs_shows_pointing_hand_not_text_cursor() {
+            let mut h = harness();
+            for tab in ["Recent", "Saved", "Photo", "Print", "Art & Illustration", "Web", "Mobile", "Film & Video"] {
+                let rect = h.get_by_label(tab).rect();
+                h.hover_at(rect.center());
+                h.run_steps(2);
+                assert_eq!(
+                    h.output().platform_output.cursor_icon,
+                    egui::CursorIcon::PointingHand,
+                    "hovering preset tab {tab:?} must show PointingHand instead of text caret"
+                );
+            }
         }
     }
 }

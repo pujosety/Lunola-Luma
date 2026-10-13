@@ -10,13 +10,13 @@ Affinity files.
 
 `photocraft-io` maps the model to an 8-bit RGB document at the Affinity document's resolution:
 
-| Affinity | PhotoCraft |
+| Affinity | Lunola Luma |
 |---|---|
 | Pages, Publisher spreads | one artboard per spread, spreads side by side 64 px apart |
 | Artboards (legacy `ABEn`, or current `.af` `phrp`/`aprp` properties, including converted curves), with name, solid background, any transform | artboards (nested ones as groups with a vector mask; rotated/curved boards use their bounding rectangle) |
 | Layers (`Scop`), groups (`Grup`), pass-through or isolated | groups (pass-through or Normal) |
 | Curves (`PCrv`): cubic subpaths, closed flags, live corners (`CnrD`) | shape layers (multi-subpath curves fill even-odd) |
-| Rectangles with corner radii (relative or absolute), ellipses, polygons (smooth too), stars, square stars, pies, triangles, trapezoids, clouds, hearts, cogs, rounded and elliptical callouts, arrows, double stars, tears, crescents, diamonds and circular segments | shape layers |
+| Rectangles with corner radii (relative or absolute, locked or per corner) and round or straight corners, ellipses, polygons (smooth too), stars, square stars, pies, triangles, trapezoids, clouds, hearts, cogs, rounded and elliptical callouts, arrows, double stars, tears, crescents, diamonds and circular segments | shape layers |
 | Compound shapes (`Comp`, add and subtract) | one even-odd shape |
 | A shape or curve with children clips them | group with the outline as vector mask, the shape at its bottom |
 | Vector masks (`AdCh` curves and shapes) | vector masks |
@@ -34,7 +34,7 @@ Affinity files.
 Everything else is reported in the import warnings, one line per kind with a count, never
 dropped silently: layer effects, adjustment layers and live filters, brush and pressure strokes,
 transparency gradients, fill opacity, bitmap fills, master pages, unrecognized
-parametric shapes (imported as their bounding ellipses), corner types other than round, stars with
+parametric shapes (imported as their bounding ellipses), corner types other than round or straight, stars with
 rounded points, several fills or strokes on one object (one of each is used), strokes behind the
 fill, outlined or scaled text, text fields such as page numbers, frames with columns or a curved
 outline, grey/Lab/32-bit pixels, CMYK and Lab colour (converted to RGB without the document's
@@ -71,7 +71,7 @@ are rejected. The I/O adapter decodes it with a 128 MiB allocation limit.
 
 Affinity has no published file-format specification, so this reader is built only from a public
 description of the format and from public files, never from Affinity itself. This is how
-PhotoCraft already treats formats that are only partly documented: `photocraft-psd` fills the gaps
+Lunola Luma already treats formats that are only partly documented: `photocraft-psd` fills the gaps
 in Adobe's specification from the MIT-licensed psd-tools and ag-psd, and `photocraft-raw` recovered
 Nikon's compression tables by black-box analysis of CC0 sample files (see their READMEs).
 

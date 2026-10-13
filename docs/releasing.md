@@ -1,15 +1,14 @@
-# Upstream PhotoCraft release process
+# Lunola Luma release process
 
-This runbook describes the upstream release workflow, not an approved Lunola Luma release. The rebrand branch changes package display names but keeps upstream artifact filenames, identifiers and release automation; no branded release has been published. Do not publish a Lunola Luma release until the release title, signing identity, URLs and distribution process are reviewed and verified separately.
+This runbook documents the inherited build workflow configured for **Lunola Luma by Pujo Setyo**. The release workflow uses Lunola Luma as its display title while preserving stable package/artifact names and identifiers. A GitHub draft is not a public release; do not publish until every artifact, signature, URL, and distribution detail has been reviewed and verified.
 
-Every push to the `release` branch runs `.github/workflows/release.yml`. The workflow builds
-signed installers for macOS, Windows, Linux and the web, plus a FreeBSD tarball, then creates
-or updates a **draft** GitHub Release named `PhotoCraft v<version>`. Nobody sees a draft until a
-maintainer publishes it.
+Every push to the `release` branch runs `.github/workflows/release.yml`. The workflow attempts
+the configured macOS, Windows, Linux, FreeBSD, Flatpak, and WebAssembly builds, then creates or
+updates a **draft** GitHub Release named `Lunola Luma v<version>` if the required build jobs pass.
+The draft remains unpublished until a maintainer explicitly publishes it.
 
-This is PhotoCraft's implementation of the shared
-[release playbook](release-playbook.md). Upstream releases use **PhotoCraft** display names. This
-rebrand branch uses **Lunola Luma** in package display metadata while retaining machine identifiers
+This repository follows the shared [release playbook](release-playbook.md). Package display
+metadata uses **Lunola Luma**; stable compatibility identifiers remain
 (`photocraft-<version>-<platform>-<arch>.<ext>`, `ai.storyteller.photocraft`).
 
 ## Cutting a release
@@ -25,7 +24,7 @@ rebrand branch uses **Lunola Luma** in package display metadata while retaining 
    Commit the change (`Cargo.toml` + `Cargo.lock`) through the normal review flow.
 2. **Merge `main` into `release`** (or fast-forward it) and push. The workflow starts by itself.
 3. **Wait for the draft.** After about 30 to 45 minutes (notarization is the slow part), the
-   Releases page has a draft `PhotoCraft v0.2.0`, tagged `v0.2.0` on the pushed commit, with
+   Releases page has a draft `Lunola Luma v0.2.0`, tagged `v0.2.0` on the pushed commit, with
    every artifact and `SHA256SUMS.txt`. The notes are generated from the merged PRs.
 4. **Check it.** Download an installer or two and look at the job summaries. Any
    `::warning::` there means a signing secret was missing and that artifact is unsigned.
@@ -66,7 +65,7 @@ Every binary reports its version, the commit and the build date: `photocraft --v
 `cargo build` doesn't set them and reports `0.2.0 (dev build)`.
 
 Every desktop build job (macOS, Windows, Linux, FreeBSD) also checks out [craft-fonts](https://github.com/storytold/craft-fonts)
-at the commit in `CRAFT_FONTS_REF` (top of `release.yml`) and builds with `CRAFT_FONTS_DIR` and
+at the `craft-fonts-ref` commit in `.github/workflows/release.yml` and builds with `CRAFT_FONTS_DIR` and
 `CRAFT_FONTS_REQUIRED=1`, so desktop releases embed its Japanese fonts (the web build embeds none: see
 `docs/development.md` › Fonts) and fail rather than ship without them. The packages carry each font's licence as
 `OFL-<family>.txt` (`copy_font_licences` in `packaging/env.sh`; the portable zip on Windows;
@@ -76,11 +75,11 @@ in `ci.yml`. Rules: `../craftrules/standards/fonts.md`; build option: `docs/deve
 ### macOS
 
 `packaging/macos/package.sh` builds `aarch64-apple-darwin` and `x86_64-apple-darwin` with
-`MACOSX_DEPLOYMENT_TARGET=11.0`, joins them with `lipo`, and assembles `PhotoCraft.app`:
+`MACOSX_DEPLOYMENT_TARGET=11.0`, joins them with `lipo`, and assembles `Lunola Luma.app`:
 
 - `Info.plist` is generated from `Info.plist.in`. The bundle id is `ai.storyteller.photocraft`.
   The plist sets `LSMinimumSystemVersion` 11.0, `NSHighResolutionCapable`, and document types:
-  `.pcraft` (Owner), plus PSD/PSB and the image formats PhotoCraft reads (Alternate, so it never
+  `.pcraft` (Owner), plus PSD/PSB and the image formats Lunola Luma reads (Alternate, so it never
   takes over Preview's defaults). The icon is `assets/app-icon/photocraft.icns`.
 - **Signing** goes inside-out with the hardened runtime and a secure timestamp. The executable
   is signed first, then the bundle. There's no `--deep` on the final signature. The
@@ -90,7 +89,7 @@ in `ci.yml`. Rules: `../craftrules/standards/fonts.md`; build option: `docs/deve
   to drag onto). The DMG is signed, notarized and stapled too. The script checks the results
   with `codesign --verify --strict`, `stapler validate` and `spctl -a -vvv`.
   Its Finder window (background, icon size and positions) comes from
-  [`packaging/macos/dmg/`](../packaging/macos/dmg/README.md), and its volume is named `PhotoCraft`
+  [`packaging/macos/dmg/`](../packaging/macos/dmg/README.md), and its volume is named `Lunola Luma`
   without the version, which the window's background needs; the DMG file name keeps the version.
 - **CLI:** the universal `photocraft-cli` is signed with the same Developer ID, the hardened
   runtime and a secure timestamp (identifier `ai.storyteller.photocraft-cli`), zipped, and the zip
@@ -128,7 +127,7 @@ goes in `CARGO_TARGET_<TRIPLE>_RUSTFLAGS`, so host build scripts aren't affected
   (build dependency `0.1`). They only do this when targeting Windows. Elsewhere each
   script is a no-op, even if `PHOTOCRAFT_REQUIRE_WINRES` is set, and the web build
   doesn't touch that crate. Both set ProductName to Lunola Luma, CompanyName to
-  LUNOLA and the upstream PhotoCraft copyright line. The GUI description is
+  LUNOLA and the original source copyright line. The GUI description is
   "Lunola Luma Professional Photo Editor" (`photocraft.exe`). The CLI description is
   "Lunola Luma command-line interface", with OriginalFilename `photocraft-cli.exe`
   and InternalName `photocraft-cli`. Version strings are the Cargo package version,
@@ -186,6 +185,13 @@ Why these formats:
 - **AppImage** runs on any distribution without installing anything. The
   download-and-go option and the fallback for distros the packages don't cover. It's built
   with the maintained `AppImage/appimagetool`, whose static runtime doesn't need libfuse2.
+  The packaging script verifies pinned AppImageTool 1.9.1 and type2 runtime 20251108 binaries.
+  For an offline build, pre-seed `$CARGO_TARGET_DIR/appimagetool-1.9.1-$ARCH.AppImage` and
+  `$CARGO_TARGET_DIR/type2-runtime-20251108-$ARCH` with the matching official release assets;
+  the script checks both SHA-256 digests and makes the cached AppImageTool executable after verification;
+  the runtime is only read as data.
+  An `APPIMAGETOOL` override must point to that same verified AppImageTool binary and already be
+  executable (`chmod +x` it before packaging).
   Each AppImage embeds update information (`gh-releases-zsync|…|latest|…`, #349) and ships
   with a `.zsync` beside it, so AppImageUpdate, AppImageLauncher and similar tools can find
   the next release and download only the blocks that changed.

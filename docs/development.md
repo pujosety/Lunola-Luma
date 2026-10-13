@@ -18,7 +18,7 @@ then open a new terminal and check `cargo --version` and `rustc --version`.
 
 On Windows 11, Smart App Control can block Cargo, rustc or executables generated during a build.
 If a build reports `An Application Control policy has blocked this file. (os error 4551)`
-([#1585](https://github.com/storytold/photocraft/issues/1585)), check:
+(source issue #1585), check:
 
 - **Windows Security → App & browser control → Smart App Control settings** for its status.
 - **Event Viewer → Applications and Services Logs → Microsoft → Windows → CodeIntegrity →
@@ -28,8 +28,8 @@ This error indicates an application-control restriction; moving `CARGO_TARGET_DI
 reinstalling Rust does not establish that the blocked executable is trusted. See Microsoft's
 [Smart App Control FAQ](https://support.microsoft.com/en-us/windows/security/threat-malware-protection/smart-app-control-frequently-asked-questions)
 for the available controls; there is no per-app exception. On a managed device, ask your
-administrator about an approved development environment. If you only want to run PhotoCraft,
-use the [packaged Windows release](https://github.com/storytold/photocraft/releases) to avoid
+administrator about an approved development environment. If you only want to run Lunola Luma,
+use the [packaged Windows release](../releases/README.md) to avoid
 building locally; the downloaded app is still subject to Windows application-control checks.
 
 ## Build and run
@@ -97,7 +97,7 @@ If the device is lost while running (#243), every GPU entry point checks the dev
 
 The desktop app writes its `log` records to standard error and to `logs/photocraft.log` in the settings directory (Linux `~/.config/photocraft/logs/`, macOS `~/Library/Application Support/Photocraft/logs/`, Windows `%APPDATA%\Photocraft\logs\`, or under `PHOTOCRAFT_CONFIG_DIR` / the portable data folder). A start launched from a desktop menu or the Dock has no terminal, so this file is what to attach to a bug report: GPU startup fallbacks, a lost device and the crash guard's panic report all land there. Each launch moves the previous log to `photocraft.1.log` (and that one to `photocraft.2.log`), so the log of a run that crashed survives the next start. The file stops growing at 16 MiB. `--version` and command-line errors write no file.
 
-By default PhotoCraft's own crates log at `info` and everything else at `warn`. `RUST_LOG` replaces that with env_logger-style directives, for example `RUST_LOG=debug`, `RUST_LOG=warn,photocraft_gpu=trace` or `RUST_LOG=info,wgpu_core=warn`; a directive ending in `*` covers every target starting with it (`photocraft*=debug`). The logger is `apps/photocraft/src/logging.rs`; the web build logs to the browser console instead.
+By default Lunola Luma's own crates log at `info` and everything else at `warn`. `RUST_LOG` replaces that with env_logger-style directives, for example `RUST_LOG=debug`, `RUST_LOG=warn,photocraft_gpu=trace` or `RUST_LOG=info,wgpu_core=warn`; a directive ending in `*` covers every target starting with it (`photocraft*=debug`). The logger is `apps/photocraft/src/logging.rs`; the web build logs to the browser console instead.
 
 ## Environment variables
 
@@ -144,6 +144,7 @@ See `docs/control-protocol.md` for every method. Tips:
 - **macOS does not render occluded windows.** `ui.screenshot` raises the window first (`focus: true` by default). Use `ui.focus` before other visual checks.
 - **Capture only our own window.** For native captures (to see the real title bar and traffic lights), capture by window id (`screencapture -l <CGWindowID>`), never a screen region, which can grab other apps.
 - **Pointer gestures:** `ui.pointer` takes events in *document* coordinates and runs them through the same tool state machine as the mouse.
+- **Seeing tile storage:** `ui.set {"tileGrid": true}` overlays the active layer's stored tiles, which shows how sparse a layer is and which tiles share pixels (`ui-egui/src/tile_overlay.rs`).
 
 ## Headless CLI
 
@@ -175,7 +176,7 @@ At startup the desktop lists recovery metadata, then decodes one document at a t
 
 `photocraft-io` routes `.pcraft` through this crate in `import`/`export`, detecting it by magic or by extension.
 
-## MCP (agents)
+## MCP automation
 
 `photocraft-cli mcp` serves MCP on stdio using `crates/automation`, which is built on `rmcp`:
 
@@ -192,36 +193,30 @@ Tools:
 - `jobs_list` (running background jobs with progress, then recently finished ones with their result or error), `jobs_cancel` (one job by id, or every running job)
 - bridge only: `ui_inspect`, `ui_screenshot`, `ui_pointer`, `ui_menu_invoke`, `ui_set`, `control_call`
 
-Claude Code (`.mcp.json` in the repo root, or `claude mcp add`):
+MCP-compatible clients (`.mcp.json` in the repository root):
 
 ```json
 {
   "mcpServers": {
-    "photocraft": {
-      "command": "/path/to/photocraft/target/release/photocraft-cli",
+    "lunola-luma": {
+      "command": "/path/to/lunola-luma/target/release/photocraft-cli",
       "args": ["mcp", "--automation-read-root", "/absolute/path/to/trusted/workspace", "--automation-write-root", "/absolute/path/to/trusted/workspace"]
     },
-    "photocraft-live": {
-      "command": "/path/to/photocraft/target/release/photocraft-cli",
-      "args": ["mcp", "--bridge", "127.0.0.1:7878", "--control-token-file", "/private/path/photocraft-control.token"]
+    "lunola-luma-live": {
+      "command": "/path/to/lunola-luma/target/release/photocraft-cli",
+      "args": ["mcp", "--bridge", "127.0.0.1:7878", "--control-token-file", "/private/path/lunola-luma-control.token"]
     }
   }
 }
 ```
 
-```sh
-cargo build --release -p photocraft-cli
-mkdir -p "$PWD/photocraft-work"
-claude mcp add photocraft -- "$PWD/target/release/photocraft-cli" mcp \
-  --automation-read-root "$PWD/photocraft-work" \
-  --automation-write-root "$PWD/photocraft-work"
-```
+MCP-compatible clients can use the installed or release-built CLI's absolute path in this JSON server definition. Keep the read/write roots scoped to the project directory.
 
 `doc_inspect` (and the engine command `document.inspect`) reports the layer tree with kinds,
 bounds, masks, selection, effects (`effects.items[].kind`), smart filters (`smartFilters[]`), smart
 object sources (`smartSource`: `embedded` with its file name, or `linked` with a file path or, for a
 PSD placed layer, the `Idnt` uuid its duplicates share), type
-text, adjustment settings, channels and history, so agents can verify what they did without a
+text, adjustment settings, channels and history, so automation clients can inspect document state without a
 screenshot. `crates/automation/tests/agent_tasks.rs` is the reference: ten realistic edit tasks
 (title card, colour grade, undo/redo, editable smart blur, masks, saved selections, align,
 capability-scoped export, resize/crop, CMYK + native save) driven purely over MCP.
@@ -229,7 +224,7 @@ capability-scoped export, resize/crop, CMYK + native save) driven purely over MC
 Without MCP, `photocraft-cli serve [--port N]` keeps a headless session open and answers JSON lines
 (see `docs/control-protocol.md#headless-server`).
 
-A typical agent loop (place inputs under the configured read root and outputs under the write root):
+A typical automation loop (place inputs under the configured read root and outputs under the write root):
 
 1. `doc_open {path}`
 2. `command_list {filter:"blur"}`
@@ -283,12 +278,13 @@ translations do not affect the denominator. Unregistered locale TSV files are ig
 - **Numbers** (7360 × 4912, 8 text layers + one painted layer with drop shadow + stroke + bevel, Hue/Saturation on top; M4 Pro; `cargo run --release -p photocraft-ui-egui --example fx_bench`), CPU fallback → GPU: full refresh with warm effect maps 5.7 s → 47 ms; Hue/Saturation tweak above the effects 4.7 s → 31 ms; brush dab on a plain layer 32 → 1.7 ms; brush dab on the effect layer (its maps rebuilt around the dab) 659 → 3.7 ms; first refresh (all maps built) 6.4 s → 0.39 s. With the CPU ~14× oversubscribed by parallel builds (min of 7 runs): 8.1 s → 0.33 s, 9.9 s → 0.28 s, 28 → 2.2 ms, 1.7 s → 89 ms; moving a text layer 7 px 336 → 13 ms. `fx_bench --compare corpus/psd/…/*.psd` reports the GPU vs CPU difference on real files (30 of the 31 corpus files with effects render on the GPU, worst 0.12/255).
 - On the CPU path `compose::effect_maps` caches shadow, glow, bevel and satin maps per layer state (LRU, 768 MB budget).
 - Live adjustment previews on large documents use a downsampled proxy (`ui-egui/src/proxy.rs`).
+- **Content-Aware tools** (`algo::inpaint`, `algo::content_aware`: Fill, Spot Healing, Patch, Content-Aware Move). `cargo run --release -p photocraft-engine --example content_aware_bench -- bench caf|heal|cancel` times the P21, P22 and P49 rows without the UI, one sample per line, so two builds can be run in turn and pooled. `-- hash` prints a hash of every tool's output at 8, 16 and 32 bits and in Gray, CMYK and Lab: the fill is fitted to Photoshop, so a speed-up must leave both builds' lists equal. The solver works only over the hole's bounds grown by a patch radius (nothing else changes or is matched). PatchMatch sweeps its bands in wavefronts when there are fewer bands than threads; each cell sees the same neighbours and random numbers as in raster order, so the result does not depend on the thread count. Cancellation is checked per row: a 24 MP fill stops within tens of milliseconds, most of it spent freeing its buffers.
 - `ui.inspect` returns `perf` timings (UI ms per frame, composite ms, upload ms).
 - Never scan full surfaces per frame. Cache per document revision (`PhotocraftApp::cached_bounds`). An uncached `content_bounds()` on a 36 MP layer once cost 77 ms per frame.
 
 ## Scorecard and performance budgets
 
-[`docs/scorecard.md`](scorecard.md) says, with numbers, where PhotoCraft stands per area. It is
+[`docs/scorecard.md`](scorecard.md) says, with numbers, where Lunola Luma stands per area. It is
 generated; never edit it by hand.
 
 ```sh
@@ -351,7 +347,7 @@ trunk build --release              # writes ../../dist/web (index.html, .js glue
 trunk serve --release              # dev server on http://127.0.0.1:8765
 ```
 
-Any static file server works for `dist/web`, for example `python3 -m http.server 8765` run inside that directory. Trunk downloads the matching `wasm-bindgen` and `wasm-opt` itself. `trunk build --release` uses the `wasm-release` Cargo profile (`data-cargo-profile` in `index.html`: fat LTO, opt-level "z" for `photocraft-ui-egui`, "s" for other crates except pixel processing, which keeps level 3). The UI override reduces browser code size while retaining the speed-oriented settings for filters and compositing. Serve the `.wasm` with compression; its raw size varies with the source and compiler. Keep it under 24 MiB (`packaging/web/package.sh` enforces this; Cloudflare's per-file cap is 25 MiB). Pull-request CI also builds the actual browser app with the same pinned Trunk version as the release job and runs `packaging/web/package.sh`, including the relative-URL and 24 MiB checks. The `web build and wasm size gate` check runs on main and on PRs that change something the web build compiles or packages (`apps/photocraft-web`, `packaging/web`, crate sources and manifests, `Cargo.toml`/`Cargo.lock`, the CI workflow), and reports the resulting wasm size in the Actions job summary. The web build never embeds craft-fonts (see Fonts above). To see where the bytes go, run `twiggy top -n 40` on `target/wasm32-unknown-unknown/wasm-release/photocraft-web.wasm` (before wasm-opt strips the names).
+Any static file server works for `dist/web`, for example `python3 -m http.server 8765` run inside that directory. Trunk downloads the matching `wasm-bindgen` and `wasm-opt` itself. `trunk build --release` uses the `wasm-release` Cargo profile (`data-cargo-profile` in `index.html`: fat LTO, opt-level "z" for the UI, engine, I/O and web shells and for large crates off the hot paths (document model, file parsers, JSON, SVG parsing, shader translation), "s" for other crates except pixel processing, which keeps level 3). The UI override reduces browser code size while retaining the speed-oriented settings for filters and compositing. Serve the `.wasm` with compression; its raw size varies with the source and compiler. Keep it under 24 MiB (`packaging/web/package.sh` enforces this; Cloudflare's per-file cap is 25 MiB). Pull-request CI also builds the actual browser app with the same pinned Trunk version as the release job and runs `packaging/web/package.sh`, including the relative-URL and 24 MiB checks. The `web build and wasm size gate` check runs on main and on PRs that change something the web build compiles or packages (`apps/photocraft-web`, `packaging/web`, crate sources and manifests, `Cargo.toml`/`Cargo.lock`, the CI workflow), and reports the resulting wasm size in the Actions job summary. The web build never embeds craft-fonts (see Fonts above). To see where the bytes go, run `twiggy top -n 40` on `target/wasm32-unknown-unknown/wasm-release/photocraft-web.wasm` (before wasm-opt strips the names).
 
 URL flags: `?webgl` forces the WebGL2 backend, and `?cpu` forces the CPU canvas path.
 
@@ -370,7 +366,7 @@ How the web shell (`apps/photocraft-web/src/web.rs`) differs from desktop:
 - **Open** uses `rfd::AsyncFileDialog`. The bytes arrive asynchronously in `Services::inbox`, which the app drains every frame.
 - **Save / Save As / Export** trigger a browser download of the encoded bytes. The shell does this with a Blob, an object URL and a temporary `<a download>`, all created from Rust. There is no save dialog, so the suggested name becomes the download name.
 - **Drag-and-drop:** `WebShell` takes the frame's `dropped_files` before the app sees them. It reads each file with `DroppedFile::bytes_async` and pushes the bytes into the inbox.
-- **Startup failures:** `index.html` shows "Loading PhotoCraft…" until the app removes it, or replaces it with the error when the web runner fails to start. If the `.wasm` never downloads or doesn't match the page's `.js` (a stale cached `index.html` after a deploy), no Rust runs at all, so the page itself (CSS only, no script) adds a hint with a Reload link after 20 seconds.
+- **Startup failures:** `index.html` shows "Loading Lunola Luma…" until the app removes it, or replaces it with the error when the web runner fails to start. If the `.wasm` never downloads or doesn't match the page's `.js` (a stale cached `index.html` after a deploy), no Rust runs at all, so the page itself (CSS only, no script) adds a hint with a Reload link after 20 seconds.
 - **No control server:** browsers can't listen on TCP. To automate the web build, drive headless Chrome with `--remote-debugging-port`. `Page.setInterceptFileChooserDialog` plus `DOM.setFileInputFiles` covers Open, `Input.dispatchDragEvent` with `files` covers drops, and `Browser.setDownloadBehavior` captures downloads.
 - Headless Chrome on macOS (`--headless=new --enable-unsafe-webgpu`) gets a real WebGPU adapter.
 
@@ -414,6 +410,21 @@ Input calls (`ui.key`, `ui.type`, `ui.click`) now reply only after the app has p
 so a following `ui.inspect` observes their effect.
 
 
+## Photoshop Actions (.atn)
+
+`photocraft-psd` reads and writes Photoshop Actions files (`atn`, version 16: Photoshop 6 and
+later); `photocraft-engine`'s `atn_cmds` maps their events onto commands (`actions.load`,
+`actions.save`; the Actions panel menu's Load/Save Actions…; `photocraft-cli batch --actions
+set.atn`). To see what a set holds (event ids, panel names, the parameter keys Photoshop
+recorded) when adding an event to the table:
+
+```sh
+cargo run -p photocraft-psd --example atn_dump -- "Default Actions.atn"
+```
+
+Events outside the table load as `actions.photoshopStep` steps that keep the descriptor
+verbatim (so Save Actions writes them back) and fail at playback with the step's Photoshop name.
+
 ## Remove Tool quality
 
 `cargo run --release -p photocraft-engine --example remove_quality -- <dir> [out dir]` fills
@@ -444,7 +455,7 @@ against committed **sha256 manifests**. All pins are in one place:
 
 | Directory | What | Source | Manifest |
 |---|---|---|---|
-| `corpus/photoshop/` | 256 PSDs we authored with Photoshop: smart filters, layer-style effect shapes, the text engine, adjustments in every mode and depth | https://github.com/storytold/photocraft-corpus (ours, MIT OR Apache-2.0) | `xtask/photoshop-corpus.sha256` |
+| `corpus/photoshop/` | 256 PSDs we authored with Photoshop: smart filters, layer-style effect shapes, the text engine, adjustments in every mode and depth | the separately maintained test corpus (ours, MIT OR Apache-2.0) | `xtask/photoshop-corpus.sha256` |
 | `corpus/psd/` | 170 small psd-tools and ag-psd files, the mix most PSD tests use | psd-tools and ag-psd upstreams (MIT) | `xtask/psd-corpus.sha256` |
 | `corpus/psd-tools/` | the complete psd-tools test set (309 files) | psd-tools upstream (MIT) | `xtask/psd-tools-corpus.sha256` |
 | `corpus/heif/` | 9 small HEIC/HEIF files (checkerboards, RGB strips, a grid-tiled photo with EXIF/XMP, each with Apple's decode as `.ref.png`; a 10-bit RGBA file with its source PNG), for the `heif` feature | heic-rs (MIT OR Apache-2.0) and pillow-heif (BSD-3-Clause) upstreams | `xtask/heif-corpus.sha256` |
@@ -477,7 +488,7 @@ scripts/fetch-corpus.sh            # the same as cargo xtask corpus --all
   the manifests. A download happens only when a pin changes; otherwise the cache restores in seconds
   and is re-verified (sha256) before the tests run. Fork PRs read the base branch's cache.
 
-**Our own corpus: [photocraft-corpus](https://github.com/storytold/photocraft-corpus).**
+**Our own corpus: the separately maintained test corpus.**
 
 - **Authoring clone:** a normal git clone, `git clone git@github.com:storytold/photocraft-corpus.git`,
   placed next to this checkout (`../photocraft-corpus`). Its generators write there, and you commit
@@ -526,3 +537,22 @@ stroke is drawn above its clipped layers; linked effect patterns tile from the l
 reference point; stroke distances follow a 5 × 5 chamfer metric (1, √2, √5) seeded at sub-pixel
 edge offsets; interior effects keep the layer's alpha; outside strokes blend onto the backdrop with
 their own modes, an upper stroke covering lower ones.
+
+## System printing
+
+`file.print` and `file.printOneCopy` keep PDF layout, scaling, marks and ICC conversion in
+Lunola Luma and submit the rendered bytes through `craft-print` at the Git revision pinned in
+`Cargo.toml`. CUPS streams the PDF on macOS/Linux; Windows uses the shared Windows PDF backend.
+The driver receives exact physical sheet size so it does not scale Lunola Luma's layout twice.
+Windows raster printing does not establish physical-printer colour fidelity; test critical
+photo output with the actual printer and its profile.
+
+Desktop commands run composition and submission on a background worker. The UI reports success
+only when the spooler accepts the job; remove submitted jobs in the system print queue. Headless
+`Session::execute` stays synchronous. The returned `pdf` is `null` for a spool-only job, and
+`command` is a diagnostic preview, not an executable command with a PDF path. Supplying `output`
+keeps a PDF at that path and defaults `send` to false. `dryRun` renders the PDF and reports the
+backend command without submitting; it writes a PDF only when `output` is explicit. `send: false`
+without an output requires `dryRun: true`. Remembered print settings omit `output`, `dryRun` and
+`send`, so Print One Copy derives submission from its own output choice. Shared spooler transport
+files are automatically removed on Windows; CUPS needs none.

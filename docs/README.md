@@ -1,15 +1,15 @@
-# Lunola Luma documentation
+# Lunola Luma by Pujo Setyo — documentation
 
-This index separates user instructions, engineering references, branding records, and release preparation. Lunola Luma is a display-identity rebrand of PhotoCraft; package/crate names, executable names, document formats, file extensions, environment variables, and compatibility paths intentionally retain their PhotoCraft identifiers.
+This index separates user instructions, engineering references, branding records, and release preparation for **Lunola Luma by Pujo Setyo**. Stable package and executable names, file formats, extensions, environment variables, and compatibility paths remain unchanged where required for existing users.
 
 ## Start here
 
 - [Getting started](getting-started.md) — status of builds, source-build steps, opening/saving/exporting work, menu changes, and troubleshooting.
-- [Project README](../README.md) — product overview, feature inventory, supported formats, and explicitly labelled upstream PhotoCraft downloads.
+- [Project README](../README.md) — product overview, feature inventory, supported formats, and current release status.
 - [Branding and assets](../brand/lunola-luma/README.md) — owner-supplied source art, generated platform assets, legal boundary, and visual evidence.
 - [Rebrand change log](rebrand-changelog.md) — scope, compatibility boundaries, and verification status.
 - [Windows smoke-test record](windows-smoke-test.md) — build, runtime, menu, About, open/save/export evidence and known test limitation.
-- [Release folder](../releases/README.md) — draft-only release process and the artifact checklist; no Lunola Luma release is published.
+- [Release folder](../releases/README.md) — public 0.7.0 release notes, verified artifacts, and remaining platform/signing limitations.
 
 ## Engineering and architecture
 
@@ -30,9 +30,9 @@ This index separates user instructions, engineering references, branding records
 
 ## Packaging and legal notices
 
-- [Upstream PhotoCraft release process](releasing.md) — this is not authorization to publish Lunola Luma packages.
+- [Release process](releasing.md) — inherited build workflow and Lunola Luma release gates.
 - [macOS DMG layout](../packaging/macos/dmg/README.md)
 - [Web hosting](../packaging/web/README.md)
 - [Copyright and license notices](../NOTICE), [asset attribution](../ATTRIBUTION.md), [MIT](../LICENSE-MIT), and [Apache-2.0](../LICENSE-APACHE).
 
-The GitHub `releases/` folder contains draft materials only. Treat upstream PhotoCraft binaries and release pages as upstream products, not Lunola Luma builds.
+The `releases/` folder contains release notes and an artifact inventory. Only artifacts explicitly built and verified for Lunola Luma belong in its release draft.

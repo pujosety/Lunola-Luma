@@ -5,7 +5,7 @@ This note goes with the review of the Spanish catalog
 aligned its wording with the terminology a Spanish-speaking Photoshop user already knows, fixed
 mistranslations, and made the register consistent. No proprietary translation resources, fonts,
 screenshots or user documents are included: the terms are the ones a Spanish Photoshop user sees
-in the product and its public help, and each was checked against the meaning of PhotoCraft's own
+in the product and its public help, and each was checked against the meaning of Lunola Luma's own
 English label.
 
 ## Register and style
@@ -62,6 +62,5 @@ Raw, droplet, OpenType, sRGB, Wayland) are not translated.
 ## Out of scope
 
 Engine error, status and parameter-help messages are still English in every language (see
-[`localization-parity.md`](localization-parity.md)); this review does not change that. The review
-was AI-assisted, row by row against Photoshop's Spanish terminology; a review by a native
-speaker is still welcome.
+[`localization-parity.md`](localization-parity.md)); this review does not change that.
+The Spanish labels were compared row by row against Photoshop's terminology; a native-speaker review is welcome.
