@@ -2,7 +2,7 @@
 
 ## Status
 
-The GitHub draft **Lunola Luma v0.7.0** is created and remains unpublished. Maintainers can review the [draft and its assets](https://github.com/pujosety/Lunola-Luma/releases/tag/untagged-e224a33c9c5c21e772fe); the public [Releases page](https://github.com/pujosety/Lunola-Luma/releases) will show downloads after publication. The draft contains 19 verified CI package files plus `SHA256SUMS.txt`; it does not include macOS, Linux riscv64, or WebAssembly builds. Windows MSI and portable executables are unsigned. The current evidence and limitations are in [`0.7.0-draft.md`](0.7.0-draft.md).
+The public **Lunola Luma v0.7.0** release is live at [GitHub Releases](https://github.com/pujosety/Lunola-Luma/releases/tag/v0.7.0), tagged `v0.7.0` at commit `842a130`. GitHub shows 22 assets: 19 verified CI packages, `SHA256SUMS.txt`, and its two generated source archives. The candidate omits macOS, Linux riscv64, and WebAssembly packages; Windows MSI and portable executables are unsigned. The test and platform limitations are recorded in [`0.7.0.md`](0.7.0.md).
 
 Only artifacts built from the Lunola Luma candidate and verified for the stated platform may be attached. Do not relabel unrelated downloads as Lunola Luma builds.
 
@@ -17,4 +17,4 @@ Only artifacts built from the Lunola Luma candidate and verified for the stated 
 - [ ] Verify every download URL and screenshot points to the intended Lunola Luma candidate.
 - [ ] Review and publish only after the owner explicitly approves the release candidate.
 
-[`docs/releasing.md`](../docs/releasing.md) documents the configured release workflow. It normally creates or updates a draft after all required jobs pass; for 0.7.0, the partial draft was assembled from successful CI outputs after the automated release job skipped. Publishing still requires explicit owner approval.
+[`docs/releasing.md`](../docs/releasing.md) documents the configured release workflow. For 0.7.0, the automated release job skipped after some platform jobs failed; a maintainer assembled the verified successful CI outputs and published the preview with the missing platforms, unsigned Windows packages, and known test failure disclosed. Future releases still require explicit owner approval.

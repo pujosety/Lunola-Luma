@@ -2,7 +2,7 @@
 
 ## Release status
 
-Lunola Luma by Pujo Setyo 0.7.0 is being prepared as a draft release. No public installer is available until the release assets and checks are verified and the draft is explicitly published. Do not use unrelated upstream downloads as Lunola Luma packages. For now, build this repository from source.
+Lunola Luma by Pujo Setyo 0.7.0 is available on the [official Releases page](https://github.com/pujosety/Lunola-Luma/releases/tag/v0.7.0). This is a preview with unsigned Windows MSI/EXE files and no macOS, Linux riscv64, or WebAssembly packages. Review the release notes and SHA-256 manifest before installing. For source setup, follow this guide.
 
 ## Build from source on Windows
 

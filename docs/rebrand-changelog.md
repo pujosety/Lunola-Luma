@@ -23,7 +23,7 @@
 
 - Updated macOS bundle/DMG display assets, Linux desktop/AppStream/package descriptions, and Windows executable/installer display metadata.
 - Preserved compatibility identifiers: Cargo packages, executable/bundle/desktop IDs, registry upgrade keys, MIME types, document formats and signatures, extensions, environment variables, portable-data folders, settings paths, and command IDs.
-- A GitHub 0.7.0 draft is now present with 19 CI package assets plus `SHA256SUMS.txt`; it remains unpublished and has no `v0.7.0` tag yet. The draft, asset inventory and platform gaps are recorded in [`releases/0.7.0-draft.md`](../releases/0.7.0-draft.md).
+- The public GitHub release **Lunola Luma v0.7.0** is live with 19 verified CI package assets plus `SHA256SUMS.txt`; GitHub also serves two generated source archives (22 assets shown). It is tagged `v0.7.0` at commit `842a130`. The release excludes macOS, Linux riscv64, and WebAssembly builds; Windows MSI and portable executables are unsigned. The release notes are in [`releases/0.7.0.md`](../releases/0.7.0.md).
 
 ## Verification
 

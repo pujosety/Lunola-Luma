@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/pujosety/Lunola-Luma/releases"><strong>⬇ Get Lunola Luma</strong></a>
+  <a href="https://github.com/pujosety/Lunola-Luma/releases/tag/v0.7.0"><strong>⬇ Get Lunola Luma</strong></a>
   &nbsp;·&nbsp;
   <a href="docs/getting-started.md">Getting started</a>
   &nbsp;·&nbsp;
@@ -30,7 +30,7 @@
   <img src="brand/lunola-luma/evidence/after.png" alt="Lunola Luma running on Windows" width="100%">
 </p>
 
-> **Download status:** Version 0.7.0 is still an unpublished draft. The Releases link is the official download page; public downloads will appear there after review and publication.
+> **Download:** Lunola Luma v0.7.0 preview is published. Windows installers are unsigned; release notes list the missing platforms and test limitation.
 
 ## An editor built around the way you work
 
@@ -58,9 +58,9 @@ Read/write details and limitations are listed in the [format capability matrix](
 
 ## Get the preview
 
-[**Visit the official Releases page →**](https://github.com/pujosety/Lunola-Luma/releases)
+[**Visit the official Releases page →**](https://github.com/pujosety/Lunola-Luma/releases/tag/v0.7.0)
 
-The current 0.7.0 candidate is an unpublished GitHub draft, not a public download. It contains successful CI packages for Windows, Linux, Flatpak and FreeBSD; macOS, Linux riscv64 and WebAssembly builds are absent. The Windows MSI and EXE files are unsigned. Wait for publication and review the release notes before installing.
+Version 0.7.0 is a published preview. GitHub lists 22 assets: 19 verified CI packages, `SHA256SUMS.txt`, and two generated source archives. Packages cover Windows x86/x64/ARM64, Linux x86_64/aarch64, Flatpak, and FreeBSD; macOS, Linux riscv64, and WebAssembly packages are absent. Windows MSI and portable EXE files are unsigned. The known UI test result is 2,184 passed, 1 failed, 10 ignored (duplicate Czech `"Tool"` catalog key). Review the release notes and checksums before installing.
 
 ## Build from source
 
