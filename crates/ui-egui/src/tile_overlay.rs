@@ -61,9 +61,21 @@ fn content_hash(t: &Tile) -> u64 {
     h.finish()
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+fn hash_distinct(distinct: &[(usize, &Arc<Tile>)], parallel: bool) -> Vec<(usize, u64)> {
+    if parallel { distinct.par_iter().map(|(p, t)| (*p, content_hash(t))).collect() } else { distinct.iter().map(|(p, t)| (*p, content_hash(t))).collect() }
+}
+
+#[cfg(target_arch = "wasm32")]
+fn hash_distinct(distinct: &[(usize, &Arc<Tile>)], _parallel: bool) -> Vec<(usize, u64)> {
+    // Rayon is native-only in this crate; the browser hashes tiles on its UI thread.
+    distinct.iter().map(|(p, t)| (*p, content_hash(t))).collect()
+}
+
 /// Every stored tile of `s` with its shared-pixels group. Groups are numbered in tile order, so
-/// the same surface always gets the same colours. `parallel` hashes on the Rayon pool; pass
-/// false while jobs hold it, so the UI thread never waits on them (#1554).
+/// the same surface always gets the same colours. `parallel` hashes on Rayon on native builds;
+/// pass false while jobs hold it, so the UI thread never waits on them (#1554). wasm32 always uses
+/// serial hashing because Rayon is native-only in this crate.
 pub fn tile_infos(s: &Surface, parallel: bool) -> Vec<TileInfo> {
     // Hash each distinct allocation once; copy-on-write clones share one.
     let mut by_ptr: HashMap<usize, &Arc<Tile>> = HashMap::new();
@@ -71,18 +83,7 @@ pub fn tile_infos(s: &Surface, parallel: bool) -> Vec<TileInfo> {
         by_ptr.entry(ptr(t)).or_insert(t);
     }
     let distinct: Vec<(usize, &Arc<Tile>)> = by_ptr.into_iter().collect();
-    // rayon is a native-only dependency; the web build hashes serially.
-    #[cfg(not(target_arch = "wasm32"))]
-    let hashed: Vec<(usize, u64)> = if parallel {
-        distinct.par_iter().map(|(p, t)| (*p, content_hash(t))).collect()
-    } else {
-        distinct.iter().map(|(p, t)| (*p, content_hash(t))).collect()
-    };
-    #[cfg(target_arch = "wasm32")]
-    let hashed: Vec<(usize, u64)> = {
-        let _ = parallel;
-        distinct.iter().map(|(p, t)| (*p, content_hash(t))).collect()
-    };
+    let hashed = hash_distinct(&distinct, parallel);
     let hash_of: HashMap<usize, u64> = hashed.into_iter().collect();
     let mut count: HashMap<u64, usize> = HashMap::new();
     for (_, t) in s.tiles() {
