@@ -40,7 +40,7 @@ fn usage_and_unknown_command() {
     let (out, _) = ok(bin().arg("--help"));
     assert!(out.contains("convert"));
     let (out, _) = ok(bin().arg("--version"));
-    assert!(out.starts_with("photocraft-cli "));
+    assert!(out.starts_with("Lunola Luma CLI "), "unexpected CLI version banner: {out}");
 }
 
 /// #423: `<subcommand> --help` and `-h` print usage and return at once (no inputs read, no files
