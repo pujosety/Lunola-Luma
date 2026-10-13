@@ -48,6 +48,13 @@ Lunola Luma brings a native, GPU-accelerated canvas together with the precision 
 - **Color with intention:** RGB, grayscale, CMYK and Lab documents at 8-, 16- and 32-bit depths, with ICC profiles, soft proofing and gamut warnings.
 - **Repeatable workflows:** batch operations and a scriptable command engine for routine edits.
 
+## Everything in the box
+
+The current toolbar includes all 67 selectable tools:
+
+<h4>🧰 67 tools</h4>
+Move · Artboard · Rectangular and Elliptical Marquee · Single Row Marquee · Single Column Marquee · Lasso · Polygonal Lasso · Magnetic Lasso · Magic Wand · Crop · Perspective Crop · Eyedropper · Color Sampler · Ruler · Note · Count · Brush · Pencil · Mixer Brush · Color Replacement · Eraser · Background Eraser · Magic Eraser · Gradient · Paint Bucket · Horizontal Type · Vertical Type · Horizontal Type Mask · Vertical Type Mask · Hand · Rotate View · Zoom · Remove · Spot Healing Brush · Healing Brush · Patch · Content-Aware Move · Red Eye · Clone Stamp · Pattern Stamp · History Brush · Blur · Sharpen · Smudge · Dodge · Burn · Sponge · Quick Selection · Object Selection · Pen · Freeform Pen · Curvature Pen · Add Anchor Point · Delete Anchor Point · Convert Point · Path Selection · Direct Selection · Rectangle · Ellipse · Triangle · Polygon · Line · Custom Shape · Slice · Slice Select · Frame
+
 ## Open the files you already have
 
 **Layered documents:** PSD and PSB, layered TIFF, OpenRaster, Krita `.kra`/`.krz` (read-only import), and Lunola Luma's native `.pcraft` format.
