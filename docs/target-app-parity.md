@@ -1,6 +1,6 @@
 # Lunola Luma vs Adobe Photoshop: target-app parity
 
-> **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-10 · **Change:** minor (Tilt-Shift measurements added; earlier the same day: major, full re-measure against Photoshop 2026 27.11.0; merged `parity-estimate.md` and the roadmap's honest assessment) · **Target:** Adobe Photoshop 2026
+> **Last reviewed:** 2026-10-12 · **Last updated:** 2026-10-12 · **Change:** minor (stale rows corrected against `main` and the scorecard, estimates unchanged; Photoshop Actions `.atn` load and save; 2026-10-10: Tilt-Shift measurements added; earlier the same day: major, full re-measure against Photoshop 2026 27.11.0; merged `parity-estimate.md` and the roadmap's honest assessment) · **Target:** Adobe Photoshop 2026
 
 The authoritative answer to "how close is Lunola Luma to Photoshop, and how much work is left". The
 one-page summary is [`ROADMAP.md`](../ROADMAP.md); the ranked work list is [`gaps.md`](gaps.md);
@@ -36,10 +36,7 @@ ready for real work 25–35%) was closer; ~700 merged PRs since then moved both 
 | Mainstream practitioner | ~43% | 1,700–2,800 | Depth in the 11 weekly areas (1,180–2,000), performance budgets, stability on real machines, PSD exchange with Photoshop |
 | Essentials user | ~61% | 400–700 | Startup and GPU robustness, brush and transform responsiveness, Type tool, discoverability (flyouts, commit buttons), AVIF/PDF open |
 
-Hours calibrated as in [Remaining effort](#remaining-effort-and-calibration) (2–9 h per checklist
-item, 8–20 h per format or subsystem, from the repo's 1,004 merged PRs); each tier is a subset of
-the one above. About 80% parallelizes (independent crates and command modules); performance
-architecture and the PSD writer are the serial parts.
+Effort ranges are rough planning units calibrated against the repository's merged PR history; each tier is a subset of the one above. About 80% parallelizes across independent crates and command modules; performance architecture and the PSD writer are the serial parts.
 
 ## Target measured
 
@@ -49,7 +46,7 @@ architecture and the PSD writer are the serial parts.
   `Locales/` language packs, `Default Keyboard Shortcuts.kys` (67 toolbox tools, 107 menu commands
   with default shortcuts), `Required/` plug-ins (85 filter entries, 12 format plug-ins), presets,
   and strings in the main binary (81 "… Tool" titles; HDR/EDR, Metal, Touch Bar, pen features).
-- Lunola Luma's own Photoshop menu tree (`crates/ui-egui/src/menu_catalog.rs`, 628 items) was
+- Lunola Luma's own Photoshop menu tree (`crates/ui-egui/src/menu_catalog.rs`, 631 items on 2026-10-12) was
   written from Photoshop's menus; it is the denominator of the menu number. Photoshop's binary
   `Default Menus.mnu` was not parsed, so items added in 27.x that the catalog lacks would not show
   (Generative and cloud items are the likely ones).
@@ -59,30 +56,30 @@ architecture and the PSD writer are the serial parts.
 
 | Component | Weight | Ours / Photoshop | % | Kind |
 |---|---:|---|---:|---|
-| Menu commands | 30% | 628 / 628 catalog items dispatch a live command | 100% | measured (`cargo xtask parity`) |
+| Menu commands | 30% | 631 / 631 catalog items dispatch a live command (628 / 628 on 2026-10-10) | 100% | measured (`cargo xtask parity`) |
 | Toolbox tools | 15% | 59 / 68 (Photoshop's 67 `.kys` tools plus Remove, Triangle, Curvature Pen; minus legacy Rounded Rectangle and Targeted Adjustment) | 87% | measured (`Tool` enum in `ui-egui/src/state.rs`, `TOOL_SECTIONS` in `panels.rs`) |
 | Panels | 10% | 30 / 35 Window-menu panels | 86% | measured (`view_cmds.rs`, panel modules) |
 | Filters and adjustments | 10% | every Filter and Image › Adjustments item live; Filter Gallery 47 looks | 100% | measured (menu catalog) |
 | File formats (usage-weighted) | 15% | 13 of 31 Photoshop formats supported in Photoshop's directions, 4 partial; the common ones (PSD/PSB, TIFF, JPEG, PNG, WebP) all present | ~80% (48% by count) | measured list, estimated weights ([file-format-parity.md](file-format-parity.md)) |
 | AI / generative | 10% | classical Select Subject/Sky, Remove tool, Content-Aware; no Generative Fill/Expand, Neural Filters, Sky Replacement, Super Zoom | ~15% | estimated |
-| Ecosystem (plug-ins, scripting, libraries) | 10% | WebAssembly plug-ins, CLI, MCP, actions; no .8BF, UXP/ExtendScript, .atn import, Libraries | ~20% | estimated |
+| Ecosystem (plug-ins, scripting, libraries) | 10% | WebAssembly plug-ins, CLI, MCP, actions, `.atn` load/save (108 events); no .8BF, UXP/ExtendScript, Libraries | ~20% | estimated |
 | **Weighted** | 100% | | **~76%** | |
 
 ## Ready for real work: ~45% (weighted)
 
 Weights reflect what a working Photoshop user depends on (photographers, retouchers, designers).
 
-| Dimension | Weight | % ready | Remaining (agent-h) | Evidence | Detail |
+| Dimension | Weight | % ready | Remaining effort units (rough) | Evidence | Detail |
 |---|---:|---:|---:|---|---|
 | Features in depth (tools, layers, selections, type, filters, transforms) | 25% | 55% | 600–1,000 | Scorecard checklists: Tools 20 done / 15 partial / 6 missing, Type 0 / 3 / 6, Automation 3 / 2 / 6. 14 tools missing; Select and Mask, Vanishing Point and Content-Aware Fill are parameter dialogs, not workspaces; type on a path, manual kerning, RTL paragraphs missing | [gaps.md](gaps.md) |
-| UI / UX fidelity and feel | 15% | 40% | 350–600 | ~150 open UI issues; Workspace checklist 5 / 7 / 11; 46 of 149 preferences do nothing; no floating panel groups, thin Color panel, no transform context menu, brush lag and pressure jumps reported | [ui-parity.md](ui-parity.md), [brush-parity.md](brush-parity.md) |
+| UI / UX fidelity and feel | 15% | 40% | 350–600 | ~150 open UI issues; Workspace checklist 13 / 5 / 5 (2026-10-12; 5 / 7 / 11 on 2026-10-10); 27 of 156 preferences do nothing (was 46 of 149); no floating panel groups, thin Color panel, brush lag and pressure jumps reported | [ui-parity.md](ui-parity.md), [brush-parity.md](brush-parity.md) |
 | File formats and fidelity | 15% | 60% | 300–500 | PSD oracle on Photoshop-authored files 133/256 (52%); io corpus 146/170 (86%); psd-tools 236/309 (76%); round trips ~100% of corpus; but users report Photoshop refusing our files (#1281, #2469; a text-layer case, #2374, was fixed 2026-10-10); no Photoshop PDF, EPS, JPEG 2000, JPEG XL, AVIF read, CR3 | [file-format-parity.md](file-format-parity.md) |
 | Performance | 10% | 25% | 200–350 | 3 of 25 budgeted scenarios meet budget (baseline 2026-10-05); 150-layer nudge crashes the GPU path (P12); layer move on 15000×10000 16-bit 2.7 s p50; users report brush and cursor lag (#2619, #2566, #1994) | [scorecard.md](scorecard.md#performance) |
 | Stability | 10% | 45% | 150–250 | Never-crash lints on 28/28 crates, `panic_hunt` in the gate, atomic saves; but field reports of freezes (#2518 Type tool 60 s on macOS), GPU panics (#2020, #1215), no-GPU start failures (#2519, #2412) | [gaps.md](gaps.md) |
 | Hardware | 5% | 50% | 80–150 | GPU compositor (wgpu), pen pressure on all desktops but tilt/rotation not on Windows, Wayland pen broken (#2622), no HDR/EDR output, monitor profile auto-detected on macOS only | [hardware-parity.md](hardware-parity.md) |
-| Localization | 5% | 55% | 80–140 | 7 of the 12 key languages at 100% of measured UI keys; Hindi, Arabic, Vietnamese absent; no RTL UI; engine messages English | [localization-parity.md](localization-parity.md) |
-| Platforms | 5% | 80% | 30–60 | macOS (notarized), Windows (unsigned), Linux (AppImage/deb/rpm/Flatpak), web, FreeBSD partial; no Windows ARM64, no in-app updates | [scorecard.md](scorecard.md#distribution) |
-| Ecosystem (plug-ins, scripting, presets, libraries) | 5% | 15% | 250–450 | No .8BF hosting (#2647), no UXP/ExtendScript, no .atn import; .abr/.grd/.pat/.aco/.ase/.cube supported | [gaps.md](gaps.md) |
+| Localization | 5% | 55% | 80–140 | 7 of the 12 key languages at 100% of measured UI keys; Hindi and Arabic absent, Vietnamese catalog added 2026-10-12 (#2636, coverage not re-measured); no RTL UI; engine messages English | [localization-parity.md](localization-parity.md) |
+| Platforms | 5% | 80% | 30–60 | macOS (notarized), Windows (unsigned), Linux (AppImage/deb/rpm/Flatpak), web, FreeBSD partial; Windows ARM64 is packaged and install-checked by `.github/workflows/windows-arm64.yml` (DIST-220-2); no in-app updates | [scorecard.md](scorecard.md#distribution) |
+| Ecosystem (plug-ins, scripting, presets, libraries) | 5% | 15% | 250–450 | No .8BF hosting (#2647), no UXP/ExtendScript; .atn load/save (2026-10-12, 108 events, the rest kept verbatim), .abr/.grd/.pat/.aco/.ase/.cube supported | [gaps.md](gaps.md) |
 | AI features | 5% | 10% | 300–600 | No ML runtime at all (scorecard AUTO-219-7); classical substitutes only. Needs an owner decision and openly licensed models (#41) | [gaps.md](gaps.md) |
 | **Weighted** | 100% | **~46%** | **2,340–4,100** | | |
 
@@ -113,7 +110,7 @@ Discounts for what still stops real work (estimated, each with evidence):
 
 | Discount | Factor | Evidence |
 |---|---:|---|
-| Interaction fidelity | ×0.92 | ~150 open UI issues; transform context menu, spring-loaded tools, panel tear-off missing ([ui-parity.md](ui-parity.md)); brush lag and pressure reports ([brush-parity.md](brush-parity.md)) |
+| Interaction fidelity | ×0.92 | ~150 open UI issues; spring-loaded tools, panel tear-off missing ([ui-parity.md](ui-parity.md)); brush lag and pressure reports ([brush-parity.md](brush-parity.md)) |
 | Stability and speed on real machines | ×0.88 | 3 of 25 performance budgets met; 150-layer GPU crash (P12); Type tool freeze (#2518); GPU start failures (#2519, #2412, #2020); 41 open performance issues |
 | Exchanging files with Photoshop users | ×0.92 | Photoshop-authored oracle 133/256; exports refused by Photoshop (#1281, #2469); smart-filter re-render 5/30 |
 
@@ -143,7 +140,7 @@ workflows, PSD exchange edge cases, and everything excluded above.
 | Layers (add, reorder, hide, opacity) | 12% | 80% | |
 | New / open a photo | 10% | 90% | |
 | Select (marquee, lasso, magic wand, object) | 10% | 75% | |
-| Move and Free Transform | 10% | 70% | no commit/cancel buttons (#2442) |
+| Move and Free Transform | 10% | 70% | commit and cancel buttons in the options bar (#2442, closed) |
 | Brush and eraser | 10% | 70% | lag with big brushes (#2619) |
 | Undo, History | 8% | 90% | |
 | Basic adjustments (brightness, levels, curves, hue/saturation) | 8% | 80% | |
@@ -161,22 +158,21 @@ people send ×0.95 (JPEG, PNG, HEIC, WebP, PSD open; AVIF and PDF don't, #463, #
 
 ## Feature areas
 
-Percent is ready-for-real-work for that area (depth and fidelity, not presence). Hours are to full
-parity for the area and are already contained in the dimension rows above.
+Percent is ready-for-real-work for that area (depth and fidelity, not presence). Effort units are rough estimates to full parity for the area and are already contained in the dimension rows above.
 
-| Area | % | Hours | Notes |
+| Area | % | Effort units | Notes |
 |---|---:|---:|---|
-| Layers, groups, masks, blend modes, smart objects, layer styles | 65% | 150–250 | Broad and GPU-accelerated. Open: multi-layer Smart Object conversion (#2604, #2648), layer clipboard between documents (UI-217-23), Stamp Visible, contour editor, smart-object perspective (FILE-215-6), mask targeting by command (#2458) |
-| Selections, Select and Mask, channels | 55% | 120–200 | All selection tools, single row/column marquee included (#2837). Select and Mask is a generic dialog (TOOL-214-1), no Refine Hair (#2671); Select Subject/Sky classical, 559 ms p50 on 24 MP vs a 100 ms budget |
+| Layers, groups, masks, blend modes, smart objects, layer styles | 65% | 150–250 | Broad and GPU-accelerated. Open: layer clipboard between documents (UI-217-23: `layer.copyToDocument` exists, no copy/paste), smart-object perspective (FILE-215-6), a user contour library (FILE-215-15). Multi-layer Smart Object conversion (#2052, #2651), Stamp Visible (UI-217-22) and mask targeting by command (#2458) are done |
+| Selections, Select and Mask, channels | 55% | 120–200 | All selection tools, single row/column marquee included (#2837). Select and Mask is a dialog with Photoshop's view modes, a Refine Edge Brush and six outputs, not a workspace (TOOL-214-1), no Refine Hair (#2671); Select Subject/Sky classical, 559 ms p50 on 24 MP vs a 100 ms budget |
 | Painting and brush engine | 55% | 150–250 | Every Brush Settings section exists; feel is the gap: lag on big brushes, pressure jumps, smoothing and edge quality reports ([brush-parity.md](brush-parity.md)) |
 | Retouching (healing, clone, patch, remove, content-aware) | 50% | 100–180 | Remove tool non-generative; Content-Aware Fill has no workspace (TOOL-214-15); live stroke preview only for Brush/Eraser (TOOL-213-7) |
-| Transform, warp, puppet, perspective, liquify | 55% | 100–180 | Free Transform modifiers right; no transform context menu (TOOL-214-5), no skew fields, puppet mesh is a block grid (TOOL-214-6), Liquify called "useless" by a user (#2606) |
+| Transform, warp, puppet, perspective, liquify | 55% | 100–180 | Free Transform modifiers right, with a right-click transform menu (TOOL-214-5); no skew fields; Puppet Warp mesh follows the object outline (TOOL-214-6); Liquify called "useless" by a user (#2606) |
 | Adjustments and filters | 70% | 120–200 | All present; smart-filter re-render matches Photoshop on 5 of 30 files; Filter Gallery looks approximate; no Neural Filters |
 | Type | 40% | 120–200 | Engine works; no type on a path, manual kerning, RTL paragraphs, OpenType panel UI, live Warp Text preview; Type tool freeze on macOS (#2518) |
-| Vector shapes and paths | 55% | 80–140 | Pen, Direct/Path Selection, shapes, shape strokes. Freeform and Curvature Pen (#1054). Missing anchor tools, on-canvas corner radius, path-point nudge; shape parity tracking issue #2496 |
+| Vector shapes and paths | 55% | 80–140 | Pen, Direct/Path Selection, shapes, shape strokes. Freeform and Curvature Pen (#1054). Add/Delete Anchor Point and Convert Point tools exist (`Tool` enum); missing on-canvas corner radius (TOOL-214-12), path-point nudge; shape parity tracking issue #2496 |
 | Colour management and modes | 70% | 60–100 | Own ICC engine, soft proof, CMYK/Lab/Indexed/Duotone/Multichannel; no Adobe CMYK profiles, no spot plates (FILE-215-17), monitor profile only at launch |
 | Camera Raw and computational photo (Photomerge, HDR, lens) | 45% | 120–200 | Raw for DNG/CR2/NEF/ARW/RW2/ORF/RAF(uncompressed)/PEF; no CR3; ACR dialog partial (no masking, calibration); generic lens profiles only |
-| Automation, actions, batch, scripting | 45% | 120–200 | CLI/MCP/control channel ahead of Photoshop; Actions panel and recording not document-independent (AUTO-219-1/2), no .atn, no ExtendScript/UXP |
+| Automation, actions, batch, scripting | 45% | 120–200 | CLI/MCP/control channel ahead of Photoshop; Actions panel and recording not document-independent (AUTO-219-1/2); `.atn` load/save since 2026-10-12 (108 events mapped, the rest kept verbatim); no ExtendScript/UXP |
 | File I/O | 60% | 300–500 | See [file-format-parity.md](file-format-parity.md) |
 | Print, export, Save for Web | 50% | 60–100 | JPEG Options dialog missing (FILE-215-19), no Photoshop PDF, no separations, Save for Web settings not remembered |
 | Video / timeline, data-driven graphics | 30% | 100–200 | Menu items live; frame model persists in `.pcraft`; no PSD video-layer mapping |
@@ -327,15 +323,13 @@ scope estimate, not a delivery schedule. Closing the last 5% (video + AI) is the
 
 - "Parity" = functional + visual equivalence of what a user can do, not byte-identical output. Clean-
   room means no Adobe code, profiles, shaders, or trained models; AI features target equivalents.
-- Wall-clock assumes 6–8 independent arcs in parallel with their own target dirs, as this session ran.
-  Serial work is ~6× longer.
+- Elapsed-time forecasts are omitted: staffing, coordination and serial architecture work dominate them.
 - Adobe removed 3D/Substance from Photoshop, so 3D is intentionally out of scope.
-- Fidelity hours are the least certain: the remaining oracle failures are proprietary RNGs and
-  unpublished curve models fitted by observation.
+- Fidelity estimates are the least certain: remaining oracle failures involve proprietary RNGs and unpublished curve models fitted by observation.
 
 ## Honest parity assessment of 2026-10-05, with dated evidence to 2026-10-10 (from the former section of `docs/roadmap.md`)
 
-This is the reference answer to "how close are we to Photoshop parity, really". Agents: read it
+This is the reference answer to "how close are we to Photoshop parity, really". Contributors: read it
 before picking work. Update it (with dated measurements) when the numbers move; don't restate the
 menu-parity number in its place.
 
@@ -446,7 +440,7 @@ filled bar. This extends UI reachability and does not claim Photoshop-authored s
 | Stability | Never-crash lint series, crash guard, `panic_hunt` fuzzing in the gate | medium-high | No field crash data yet. |
 | Camera RAW | DNG, CR2, Sony ARW (lossless + compressed), Nikon NEF (lossless + lossy compressed), RW2, uncompressed ORF; 2026-10-09: uncompressed Fujifilm RAF, Bayer and X-Trans (edge-directed X-Trans demosaic; 26 MP X-Trans develop 306 ms on 12 cores) | medium | CR3, compressed RAF and Nikon "lossy after split" still open (#50). Non-DNG cameras have no calibration: their colour (matrix + tone curve) is fitted per file to the camera's embedded JPEG, with the neutral sRGB-primaries fallback when the fit doesn't clearly help (2026-10-08: 8 D3200 NEFs, mean ΔE vs the camera JPEG 11.6–26.0 → 1.0–7.5); measured per-model calibration still open. |
 | AI / generative | none | ~0% | Deferred by decision (#41). |
-| Ecosystem | Sandboxed WebAssembly plug-ins instead of .8BF; no ExtendScript/UXP/.atn; no Adobe Fonts/Libraries/cloud docs | low | By design for 8BF; scripting compatibility open. |
+| Ecosystem | Sandboxed WebAssembly plug-ins instead of .8BF; `.atn` actions load and save (2026-10-12); no ExtendScript/UXP; no Adobe Fonts/Libraries/cloud docs | low | By design for 8BF; scripting compatibility open. |
 | Platforms | macOS (notarized), Windows, Linux (AppImage/deb/rpm/Flatpak bundle), web | medium-high | Flathub later (#173); Windows signing material pending. |
 | Localisation | 2026-10-07: 10 UI languages; menu, `tl!`, blend mode, preference and brush-section coverage enforced by tests; live switching and scoped Preferences previews | medium | Engine errors/status messages still partly English; CJK web fonts, browser-locale detection, and RTL remain open. |
 
@@ -477,7 +471,10 @@ best-patch copy and gradient-domain seam hiding. On 20 holes in public-domain ph
 original's texture (Wexler/PatchMatch completion as Content-Aware Fill uses it: 0.54). On a 24 MP
 document a 100 px ring takes 120 ms and a 1000 px ring 2.5 s (`remove_bench`). It is not
 generative: large objects over complex structure fill less convincingly than Photoshop's AI mode
-(#41).
+(#41). 2026-10-12: the options bar has Photoshop's three options: Sample All Layers, Create a new
+layer (the fill lands on a new layer above the target, `paint.remove` `newLayer`) and Remove after
+each stroke; off, the strokes collect as a tint and ↩ (or ✓) applies them together as one job and
+one undo step (`strokes`), Esc (or ⊘) drops them (#1750).
 
 2026-10-08: the tools update above is checked against the current toolbar groups in
 [`panels.rs`](../crates/ui-egui/src/panels.rs), the Pencil and tool-cycle tests in
@@ -556,10 +553,12 @@ See [method, raw measurements and reproduction](five-algorithm-performance.md).
 
 | Date | Change | Summary |
 |---|---|---|
+| 2026-10-12 | minor | Photoshop Actions `.atn` load and save (90 events mapped both ways); percentages unchanged |
+| 2026-10-12 | minor | Rows checked against `main` and the regenerated scorecard: menu count 631, Workspace checklist and preference count, transform context menu, Puppet Warp mesh, Select and Mask, anchor-point tools, Smart Object conversion, Stamp Visible, mask targeting, Free Transform commit/cancel, Vietnamese catalog, Windows ARM64; percentages, weights and effort ranges not re-measured |
 | 2026-10-10 | minor | Added measured Tilt-Shift computation/filtered-proxy gains and inconclusive cases; parity percentages and budgets unchanged |
-| 2026-10-10 | minor | Readiness-by-audience table: percent and hours for full, mainstream and essentials; full number confirmed as the additive weighted sum over dimensions (46%, reported ~45%) |
+| 2026-10-10 | minor | Readiness-by-audience table: percent and effort ranges for full, mainstream and essentials; full number confirmed as the additive weighted sum over dimensions (46%, reported ~45%) |
 | 2026-10-10 | minor | Added mainstream-practitioner (~43%) and essentials-user (~61%) numbers with written weights and discounts; full ready-for-real-work rechecked against its written weights (46%, reported ~45%), unchanged |
 | 2026-10-10 | minor | Stage checked against the core-workflow alpha gate in `roadmap.md`: passes |
-| 2026-10-10 | major | Full re-measure against Photoshop 2026 27.11.0 (installed bundle inspected); two numbers, weights, per-dimension and per-area hours calibrated from git history; merged `parity-estimate.md` and the roadmap's honest assessment into this file |
+| 2026-10-10 | major | Full re-measure against Photoshop 2026 27.11.0 (installed bundle inspected); two numbers, weights, per-dimension and per-area effort ranges calibrated from git history; merged `parity-estimate.md` and the roadmap's honest assessment into this file |
 | 2026-10-05 | major | Honest parity assessment in `docs/roadmap.md`: surface 60–70%, ready for real work 25–35% |
 | 2026-10-03 | major | `docs/parity-estimate.md`: menu breadth 625/625, weighted ~82–86% |

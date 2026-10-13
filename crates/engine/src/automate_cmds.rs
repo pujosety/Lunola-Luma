@@ -2,7 +2,7 @@
 //! and Script Events Manager, plus the session state the File-menu commands share
 //! ([`FileMenuState`]).
 //!
-//! "Scripts" are PhotoCraft action scripts: JSON (`[[id, params], …]`, `{"steps": …}` or a
+//! "Scripts" are Lunola Luma action scripts: JSON (`[[id, params], …]`, `{"steps": …}` or a
 //! droplet) or a plain-text list with one `command.id {json params}` per line (`#` comments).
 //! Droplets are JSON files (`.pcdroplet`) holding an action plus batch options; `photocraft-cli
 //! droplet <file> <inputs…>` runs one, and on Unix a `.command` shim makes it
@@ -324,9 +324,11 @@ fn write_shim(droplet: &str) -> Result<String> {
     let abs = std::fs::canonicalize(droplet).map(|p| p.to_string_lossy().into_owned()).unwrap_or_else(|_| droplet.to_string());
     let base = abs.trim_end_matches(".pcdroplet").trim_end_matches(".json");
     let shim = format!("{base}.command");
+    // Single quotes keep shell expansions inert; embedded quotes need to end the
+    // quoted segment, emit a literal quote, then resume it.
+    let quoted_abs = format!("'{}'", abs.replace('\'', "'\\''"));
     let body = format!(
-        "#!/bin/sh\n# Lunola Luma droplet: runs the action on the files given (or dropped).\nexec \"${{PHOTOCRAFT_CLI:-photocraft-cli}}\" droplet \"{}\" \"$@\"\n",
-        abs.replace('"', "\\\"")
+        "#!/bin/sh\n# Lunola Luma droplet: runs the action on the files given (or dropped).\nexec \"${{PHOTOCRAFT_CLI:-photocraft-cli}}\" droplet {quoted_abs} \"$@\"\n"
     );
     crate::file_cmds::write_file(&shim, body.as_bytes())?;
     #[cfg(unix)]

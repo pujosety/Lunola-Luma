@@ -50,7 +50,7 @@ Lunola Luma brings a native, GPU-accelerated canvas together with the precision 
 
 ## Open the files you already have
 
-**Layered documents:** PSD and PSB, layered TIFF, OpenRaster, and Lunola Luma's native `.pcraft` format.
+**Layered documents:** PSD and PSB, layered TIFF, OpenRaster, Krita `.kra`/`.krz` (read-only import), and Lunola Luma's native `.pcraft` format.
 
 **Images:** PNG, JPEG, TIFF, WebP, GIF, BMP, TGA, ICO, QOI, PNM, OpenEXR and Radiance HDR. FITS is supported for astronomy images. HEIF/HEIC and several additional formats have read-only or build-dependent support.
 

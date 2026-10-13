@@ -46,10 +46,10 @@ are covered by tests.
 Unit tests (`crates/io/src/ora/tests.rs`) round-trip layers, groups, pass-through, offsets,
 opacity, visibility, locks and every blend mode at 8 and 16 bit, check masks, rendered layer
 kinds, the archive layout and malformed input. `crates/automation/tests/openraster.rs` saves,
-reopens, edits and saves in place through the agent surface; the CLI test converts both ways.
+reopens, edits and saves in place through the automation interface; the CLI test converts both ways.
 
 Real-file checks use Krita-authored oracles from
-the separately maintained test corpus (`krita/`, made by
+[photocraft-corpus](https://github.com/storytold/photocraft-corpus) (`krita/`, made by
 `tools/krita-oracles/generate.py`). Each Krita file carries Krita's rendering of itself in
 `mergedimage.png`:
 
@@ -57,13 +57,12 @@ the separately maintained test corpus (`krita/`, made by
 KRITA_TEST_DIR=/path/to/photocraft-corpus/krita cargo test -p photocraft-io --test krita_corpus -- --ignored --nocapture
 ```
 
-2026-10-09, Krita 5.2.9: 30 of 34 `.ora` files render within 3/255 of Krita's merged image; the
-other four differ for known reasons listed in `crates/io/tests/krita_corpus.rs` (Krita's
-tie-break in Darker and Lighter Color, Hard Mix at a channel sum of exactly 1, and a
-linear-light 16-bit document that Krita blends in linear light). In the other direction,
-Krita opened every Lunola Luma re-export of those files and rendered 33 of them identically to
-its original; the exception is Photoshop's Soft Light, which is written as `svg:soft-light`.
-MyPaint and GIMP files have not been checked yet.
+2026-10-09, Krita 5.2.9: 32 of 35 `.ora` files render within 3/255 of Krita's merged image; the
+other three differ for known reasons listed in `crates/io/tests/krita_corpus.rs` (Krita's
+tie-break in Darker and Lighter Color, and Hard Mix at a channel sum of exactly 1). In the other
+direction, Krita opened every Lunola Luma re-export of the first 34 of those files and rendered 33
+of them identically to its original; the exception is Photoshop's Soft Light, which is written
+as `svg:soft-light`. MyPaint and GIMP files have not been checked yet.
 
 Format reference: the [OpenRaster specification](https://www.openraster.org/). The reader and
 writer are written from the specification and from files Krita writes; no application code
