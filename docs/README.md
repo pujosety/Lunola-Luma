@@ -9,7 +9,7 @@ This index separates user instructions, engineering references, branding records
 - [Branding and assets](../brand/lunola-luma/README.md) — owner-supplied source art, generated platform assets, legal boundary, and visual evidence.
 - [Rebrand change log](rebrand-changelog.md) — scope, compatibility boundaries, and verification status.
 - [Windows smoke-test record](windows-smoke-test.md) — build, runtime, menu, About, open/save/export evidence and known test limitation.
-- [Release folder](../releases/README.md) — public 0.7.0 release notes, verified artifacts, and remaining platform/signing limitations.
+- [Release folder](../releases/README.md) — the published 0.8.2 partial prerelease, verified package checksums, known test failures, and unavailable platforms.
 
 ## Engineering and architecture
 

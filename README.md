@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/pujosety/Lunola-Luma/releases/tag/v0.7.0"><strong>⬇ Get Lunola Luma</strong></a>
+  <a href="https://github.com/pujosety/Lunola-Luma/releases/tag/v0.8.2"><strong>⬇ Get Lunola Luma v0.8.2 Preview</strong></a>
   &nbsp;·&nbsp;
   <a href="docs/getting-started.md">Getting started</a>
   &nbsp;·&nbsp;
@@ -22,7 +22,7 @@
 
 <p align="center">
   <img alt="Rust" src="https://img.shields.io/badge/native-Rust-b7410e?style=flat-square&logo=rust">
-  <img alt="Preview version 0.7.0" src="https://img.shields.io/badge/preview-0.7.0-e8b44c?style=flat-square">
+  <img alt="Prerelease version 0.8.2" src="https://img.shields.io/badge/prerelease-0.8.2-e8b44c?style=flat-square">
   <img alt="License: MIT or Apache 2.0" src="https://img.shields.io/badge/license-MIT%20%7C%20Apache--2.0-465b73?style=flat-square">
 </p>
 
@@ -30,7 +30,7 @@
   <img src="brand/lunola-luma/evidence/after.png" alt="Lunola Luma running on Windows" width="100%">
 </p>
 
-> **Download:** Lunola Luma v0.7.0 preview is published. Windows installers are unsigned; release notes list the missing platforms and test limitation.
+> **Download:** Lunola Luma v0.8.2 is a published prerelease. It includes unsigned Windows x64 packages, Linux x86_64/aarch64 and Flatpak builds; the release notes list omitted platforms and verification failures.
 
 ## An editor built around the way you work
 
@@ -58,9 +58,11 @@ Read/write details and limitations are listed in the [format capability matrix](
 
 ## Get the preview
 
-[**Visit the official Releases page →**](https://github.com/pujosety/Lunola-Luma/releases/tag/v0.7.0)
+[**View Lunola Luma v0.8.2 Preview →**](https://github.com/pujosety/Lunola-Luma/releases/tag/v0.8.2)
 
-Version 0.7.0 is a published preview. GitHub lists 22 assets: 19 verified CI packages, `SHA256SUMS.txt`, and two generated source archives. Packages cover Windows x86/x64/ARM64, Linux x86_64/aarch64, Flatpak, and FreeBSD; macOS, Linux riscv64, and WebAssembly packages are absent. Windows MSI and portable EXE files are unsigned. The known UI test result is 2,184 passed, 1 failed, 10 ignored (duplicate Czech `"Tool"` catalog key). Review the release notes and checksums before installing.
+Version 0.8.2 is a published GitHub prerelease with 15 uploaded assets: 14 package files and `SHA256SUMS.txt`. It includes Windows x64 MSI and portable ZIP (both unsigned), Linux x86_64/aarch64 packages, and Flatpak x86_64/aarch64. macOS, Linux riscv64, WebAssembly, Windows x86/ARM64, and FreeBSD packages are not included. The 14 package checksums were verified against GitHub's reported SHA-256 digests.
+
+This is a partial preview, not a stable release. CI reported failures in corpus tests, the wasm32 check, web build/size gate, and packaging lint. The local workspace test run stopped at the CLI tests: 27 passed, one failed (`usage_and_unknown_command`, expected the output to begin with `photocraft-cli `). Review the [release notes](releases/0.8.2.md) and checksums before installing. [Lunola Luma v0.7.0](https://github.com/pujosety/Lunola-Luma/releases/tag/v0.7.0) remains available.
 
 ## Build from source
 
