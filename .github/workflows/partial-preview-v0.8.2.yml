@@ -1,0 +1,189 @@
+name: Lunola Luma v0.8.2 partial preview
+
+on:
+  push:
+    branches:
+      - preview/release-v0.8.2
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  windows-x64:
+    name: Windows x64 unsigned preview packages
+    runs-on: windows-latest
+    steps:
+      - name: Check out the merged main source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: 9da31de69a84f160f7f4634c4929387c5e8cf0d6
+
+      - name: Check out the pinned craft-fonts
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: storytold/craft-fonts
+          ref: abb83316d96aa59c1cf64784289e378fe9fa5695
+          path: craft-fonts
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
+        with:
+          toolchain: stable
+          targets: x86_64-pc-windows-msvc
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+        with:
+          key: preview-release-windows-x64
+
+      - name: Install WiX
+        uses: storytold/craft-common-actions/actions/install-wix@f0808a5ccbc32869248193ffab0de98d733de451
+        with:
+          wix-version: 5.0.2
+
+      - name: Set build metadata
+        shell: pwsh
+        run: '"PHOTOCRAFT_BUILD_DATE=$((Get-Date).ToUniversalTime().ToString(''yyyy-MM-dd''))" >> $env:GITHUB_ENV'
+
+      - name: Build unsigned Windows x64 packages
+        shell: pwsh
+        env:
+          PHOTOCRAFT_VERSION: 0.8.2
+          PHOTOCRAFT_BUILD_SHA: 9da31de69a84f160f7f4634c4929387c5e8cf0d6
+          CRAFT_FONTS_DIR: ${{ github.workspace }}/craft-fonts
+          CRAFT_FONTS_REQUIRED: '1'
+        run: ./packaging/windows/package.ps1 -Arch x64
+
+      - name: Verify Windows preview files are unsigned
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem dist/release -File | Where-Object { $_.Extension -in '.exe', '.msi' }
+          if (-not $files) { throw 'No Windows executables or MSI files were produced' }
+          foreach ($file in $files) {
+            $signature = Get-AuthenticodeSignature $file.FullName
+            Write-Output "$($file.Name): $($signature.Status)"
+            if ($signature.Status -ne 'NotSigned') { throw "$($file.Name) is not an unsigned preview artifact" }
+          }
+
+      - name: Upload Windows x64 preview files
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: preview-windows-x64
+          path: dist/release/*
+          if-no-files-found: error
+
+  publish-preview:
+    name: Assemble and publish partial preview
+    runs-on: ubuntu-latest
+    needs: windows-x64
+    steps:
+      - name: Download Linux x86_64 assets from the verified release build
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: release-linux-x86_64
+          path: dist/release
+          repository: ${{ github.repository }}
+          run-id: 38349238081
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download Linux aarch64 assets from the verified release build
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: release-linux-aarch64
+          path: dist/release
+          repository: ${{ github.repository }}
+          run-id: 38349238081
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download Flatpak x86_64 asset from the verified release build
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: release-flatpak-x86_64
+          path: dist/release
+          repository: ${{ github.repository }}
+          run-id: 38349238081
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download Flatpak aarch64 asset from the verified release build
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: release-flatpak-aarch64
+          path: dist/release
+          repository: ${{ github.repository }}
+          run-id: 38349238081
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download unsigned Windows x64 assets
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: preview-windows-x64
+          path: dist/release
+
+      - name: Rename assets and generate SHA256SUMS
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          root = Path('dist/release')
+          for item in list(root.iterdir()):
+              if not item.is_file():
+                  continue
+              name = item.name
+              if name.startswith('photocraft-cli-0.8.2-'):
+                  renamed = 'lunola-luma-cli-0.8.2-' + name[len('photocraft-cli-0.8.2-'):]
+              elif name.startswith('photocraft-0.8.2-'):
+                  renamed = 'lunola-luma-0.8.2-' + name[len('photocraft-0.8.2-'):]
+              else:
+                  continue
+              item.rename(item.with_name(renamed))
+          required = [
+              'lunola-luma-0.8.2-windows-x64.msi',
+              'lunola-luma-0.8.2-windows-x64-portable.zip',
+              'lunola-luma-0.8.2-linux-x86_64.AppImage',
+              'lunola-luma-0.8.2-linux-aarch64.AppImage',
+              'lunola-luma-0.8.2-linux-x86_64.flatpak',
+              'lunola-luma-0.8.2-linux-aarch64.flatpak',
+          ]
+          missing = [name for name in required if not (root / name).is_file()]
+          if missing:
+              raise SystemExit('Missing required preview assets: ' + ', '.join(missing))
+          files = sorted(p for p in root.iterdir() if p.is_file() and p.name != 'SHA256SUMS.txt')
+          if len(files) < len(required):
+              raise SystemExit(f'Expected at least {len(required)} package files, got {len(files)}')
+          with (root / 'SHA256SUMS.txt').open('w', encoding='ascii', newline='\n') as out:
+              for path in files:
+                  digest = hashlib.sha256(path.read_bytes()).hexdigest()
+                  out.write(f'{digest}  {path.name}\n')
+          print(f'Prepared {len(files)} package assets and SHA256SUMS.txt')
+          PY
+
+      - name: Publish Lunola Luma v0.8.2 preview
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: v0.8.2
+          target_commitish: 9da31de69a84f160f7f4634c4929387c5e8cf0d6
+          name: Lunola Luma v0.8.2 — Preview
+          draft: false
+          prerelease: true
+          make_latest: false
+          fail_on_unmatched_files: true
+          generate_release_notes: false
+          body: |
+            # Lunola Luma v0.8.2 — Partial Preview
+
+            This preview includes the upstream update merged into `main` at `9da31de69a84f160f7f4634c4929387c5e8cf0d6`. It is not a stable release.
+
+            ## Included downloads
+            - Windows x64 MSI and portable ZIP. **These files are unsigned.**
+            - Linux x86_64 and aarch64: AppImage, zsync, DEB, RPM, and tar.gz.
+            - Flatpak x86_64 and aarch64.
+            - `SHA256SUMS.txt` lists checksums for all attached package files.
+
+            ## Not included
+            - macOS, Linux riscv64, WebAssembly, Windows x86/ARM64, and FreeBSD are not included in this partial preview.
+
+            ## Verification caveat
+            The Actions run for this update reported failures in corpus tests, the wasm32 check, the web build/size gate, and packaging lint. The official full release workflow also could not produce its signed Windows or macOS packages. Treat this as a preview and keep backups of important files.
