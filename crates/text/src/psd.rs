@@ -934,13 +934,73 @@ fn txt2_mode_runs(layer: &TextLayer) -> Vec<(i64, usize)> {
 /// `i32::MAX`, and sizing the array by it would make every save allocate gigabytes.
 pub const MAX_TEXT_INDEX: i32 = 0xFFFF;
 
-/// Whether the document `Txt2` block is needed for `objects`: only a non-Metrics auto-kern mode
+/// The document `Txt2` block is needed for `objects`: only a non-Metrics auto-kern mode
 /// (`Optical`) is exclusive to `Txt2` — EngineData's `AutoKerning` cannot distinguish Metrics from
 /// Optical — so a fresh document of ordinary Metrics text has nothing to put in the block.
 /// Writing Photoshop's empty `<< /0 << >> >>` stub anyway makes some readers (Photopea) fail
 /// (#3514); the export omits the block for such a document.
 pub fn needs_txt2(objects: &[(i32, &TextLayer)]) -> bool {
     objects.iter().any(|(_, l)| l.char_runs().iter().any(|r| r.style.kerning == Kerning::Optical))
+}
+
+/// Whether `data` is the legacy PhotoCraft Metrics-only `Txt2` stub that has an empty resource
+/// dictionary and no Photoshop-specific text data. Photoshop 2026 rejects this exact shape
+/// (#1281); do not mistake a real Photoshop block with resources, glyph positions or other fields
+/// for the stub, since those must survive a round trip.
+pub fn is_legacy_metrics_txt2_stub(data: &[u8]) -> bool {
+    fn has_keys(value: &E, expected: &[&str]) -> bool {
+        let E::Dict(items) = value else { return false };
+        items.len() == expected.len() && expected.iter().all(|key| items.iter().any(|(k, _)| k == key))
+    }
+
+    fn is_metrics_run(run: &E) -> bool {
+        if !has_keys(run, &["0", "1"]) || !matches!(run.get("1"), Some(E::Int(n)) if *n > 0) {
+            return false;
+        }
+        let Some(style_wrapper) = run.get("0") else { return false };
+        if !has_keys(style_wrapper, &["0"]) {
+            return false;
+        }
+        let Some(data) = style_wrapper.get("0") else { return false };
+        if !has_keys(data, &["0", "6"]) || !matches!(data.get("0"), Some(E::String(s)) if s.is_empty()) {
+            return false;
+        }
+        let Some(style) = data.get("6") else { return false };
+        has_keys(style, &["0", "11"]) && matches!(style.get("0"), Some(E::Int(0))) && matches!(style.get("11"), Some(E::Int(1)))
+    }
+
+    fn is_text_object(object: &E) -> bool {
+        if matches!(object, E::Dict(items) if items.is_empty()) {
+            return true; // unused TextIndex slot
+        }
+        if !has_keys(object, &["0"]) {
+            return false;
+        }
+        let Some(model) = object.get("0") else { return false };
+        if !has_keys(model, &["0", "6"]) || model.get("0").and_then(E::as_str).is_none() {
+            return false;
+        }
+        let Some(style_run) = model.get("6") else { return false };
+        if !has_keys(style_run, &["0"]) {
+            return false;
+        }
+        let Some(runs) = style_run.get("0").and_then(E::as_array) else { return false };
+        !runs.is_empty() && runs.iter().all(is_metrics_run)
+    }
+
+    let Some(root) = parse_txt2(data) else { return false };
+    if !has_keys(&root, &["98", "0", "1"]) || !matches!(root.get("0"), Some(E::Dict(resources)) if resources.is_empty()) {
+        return false;
+    }
+    if !matches!(root.get("98"), Some(E::Dict(version)) if version.len() == 1 && version[0].0 == "0" && version[0].1 == E::Int(14)) {
+        return false;
+    }
+    let Some(objects) = root.get("1") else { return false };
+    if !has_keys(objects, &["1"]) {
+        return false;
+    }
+    let Some(slots) = objects.get("1").and_then(E::as_array) else { return false };
+    !slots.is_empty() && slots.iter().any(|slot| !matches!(slot, E::Dict(items) if items.is_empty())) && slots.iter().all(is_text_object)
 }
 
 /// The document's `Txt2` block for `objects`: `(TextIndex, layer)` pairs, one text object each

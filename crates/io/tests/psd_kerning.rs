@@ -120,6 +120,27 @@ fn fresh_metrics_text_writes_no_txt2_block() {
     assert!(saves_txt2(Kerning::Optical), "Optical lives only in Txt2");
 }
 
+/// A redundant minimal `Txt2` left by older PhotoCraft saves is rejected by Photoshop even though
+/// ordinary Metrics text is fully represented by the layer's `TySh`/EngineData. Do not perpetuate
+/// it when the text is edited on re-export; meaningful Photoshop-authored blocks still carry extras.
+#[test]
+fn legacy_minimal_metrics_txt2_is_omitted_on_resave() {
+    use photocraft_doc::text::Kerning;
+    let old_text = layer("PRIMA", &[(5, Kerning::Metrics, 0.0)]);
+    let text = layer("DOPO!", &[(5, Kerning::Metrics, 0.0)]);
+    let mut doc = Document::new("k", photocraft_geom::Size::new(64, 32), photocraft_color::ColorMode::Rgb, photocraft_color::SampleType::U8);
+    let mut rendered = text.clone();
+    photocraft_text::TextEngine::new().render_layer(&mut rendered, doc.resolution_dpi, doc.pixel_format());
+    let minimal = photocraft_text::psd::build_txt2(&[(0, &old_text)], None);
+    assert!(photocraft_text::psd::is_legacy_metrics_txt2_stub(&minimal), "the synthetic legacy stub must match the narrow compatibility predicate");
+    doc.layers.push(Layer::new("t", LayerContent::Text(rendered)));
+    doc.metadata.psd_global_blocks = vec![(*b"8BIM", *b"Txt2", std::sync::Arc::new(minimal))];
+
+    let bytes = photocraft_io::export(&doc, "k.psd", &Default::default()).unwrap().bytes;
+    let file = photocraft_psd::PsdFile::from_bytes(&bytes).unwrap();
+    assert!(file.global_blocks.iter().all(|b| &b.key != b"Txt2"), "redundant Metrics-only Txt2 must not be carried forward");
+}
+
 /// Two imported layers can name the same Txt2 object; export must update the second
 /// preserved TySh pointer so each layer restores its own automatic kerning mode.
 #[test]
