@@ -1628,15 +1628,17 @@ fn document_to_psd_nested(doc: &Document, opts: &PsdExportOptions, depth: u32, c
             _ => None,
         })
         .collect();
-    let previous = (!text_layers.is_empty()).then(|| preserved.iter().find(|(_, key, _)| key == b"Txt2").map(|(_, _, data)| data.to_vec())).flatten();
-    // A fresh document of ordinary (Metrics) text has nothing to put in `Txt2`, and Photoshop never
-    // writes its empty `<< /0 << >> >>` stub — readers such as Photopea reject it (#3514). Keep the
-    // block when the file had one (round-trip its pen positions/extras) or a layer is Optical (the
-    // one mode EngineData can't carry; #1348).
-    let txt2 =
-        (previous.is_some() || photocraft_text::psd::needs_txt2(&text_layers)).then(|| photocraft_text::psd::build_txt2(&text_layers, previous.as_deref()));
-    for (sig, key, data) in preserved {
-        if txt2.is_some() && key == *b"Txt2" {
+    let previous_txt2_index = (!text_layers.is_empty()).then(|| preserved.iter().position(|(_, key, _)| key == b"Txt2")).flatten();
+    let previous = previous_txt2_index.and_then(|index| preserved.get(index).map(|(_, _, data)| data.to_vec()));
+    // Older PhotoCraft builds emitted a Metrics-only Txt2 with an empty resource dictionary.
+    // Photoshop 2026 rejects that legacy stub (#1281); drop only this exact shape. Other existing
+    // blocks may carry Photoshop-only data such as glyph pen positions, so retain and regenerate them.
+    let discard_legacy_stub = previous.as_deref().is_some_and(photocraft_text::psd::is_legacy_metrics_txt2_stub);
+    let previous_to_keep = previous.as_deref().filter(|_| !discard_legacy_stub);
+    let txt2 = (previous_to_keep.is_some() || photocraft_text::psd::needs_txt2(&text_layers))
+        .then(|| photocraft_text::psd::build_txt2(&text_layers, previous_to_keep));
+    for (index, (sig, key, data)) in preserved.into_iter().enumerate() {
+        if key == *b"Txt2" && (txt2.is_some() || (discard_legacy_stub && Some(index) == previous_txt2_index)) {
             continue;
         }
         // A kept layer block (one the import could not read, #2700) describes layers the
