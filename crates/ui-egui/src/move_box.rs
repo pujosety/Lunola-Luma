@@ -2,7 +2,7 @@
 //! that starts where no layer would be picked (an empty, transparent spot, or the pasteboard
 //! outside the canvas) draws a box instead of moving anything. Releasing selects every layer whose
 //! content touches the box (`layer.selectInRect`; Auto-Select: Group selects their outermost
-//! groups), ⇧ adds them to the layers already selected. A click there selects nothing.
+//! groups), ⇧ adds them to the layers already selected. A plain click there deselects layers; ⇧-click preserves them.
 
 use serde_json::json;
 
@@ -51,6 +51,16 @@ pub(crate) fn pointer(app: &mut PhotocraftApp, ev: ToolEvent) -> bool {
             app.layer_box = None;
             let (w, h) = (b.end[0] - b.start[0], b.end[1] - b.start[1]);
             if w == 0.0 || h == 0.0 {
+                // A no-motion click on empty canvas clears the layer selection, but ⇧-click is a
+                // selection gesture and must leave it alone. A one-axis marquee remains a no-op.
+                if w == 0.0
+                    && h == 0.0
+                    && !b.add
+                    && let Err(e) = app.run("select.deselectLayers", json!({}))
+                {
+                    app.ui.status = e;
+                    app.ui.status_error = true;
+                }
                 return true;
             }
             let target = app.ui.tool_options.move_target.clone();
@@ -133,5 +143,39 @@ mod tests {
         assert!(app.ui.dialogs.iter().all(|d| d.kind != crate::state::DialogKind::Error), "no lock dialog");
         assert!(app.layer_box.is_none());
         assert_eq!(app.session.active().unwrap().selected_layers(), vec![paint]);
+    }
+
+    /// BUG-002: a plain click on transparent empty canvas with the Move tool deselects layers.
+    /// The old path starts a zero-area box and returns without changing the previous selection.
+    #[test]
+    fn clicking_an_empty_spot_clears_layer_selection() {
+        let mut app = PhotocraftApp::new(photocraft_engine::Session::new(), crate::Services::default());
+        app.run("file.new", json!({"width": 100, "height": 100, "background": "transparent"})).unwrap();
+        app.run("layer.new.layer", json!({})).unwrap();
+        app.run("select.rect", json!({"x": 8, "y": 8, "width": 16, "height": 16})).unwrap();
+        app.run("edit.fill", json!({"color": "#ff0000"})).unwrap();
+        let a = app.session.active().unwrap().active_layer.unwrap();
+        app.run("layer.new.layer", json!({})).unwrap();
+        app.run("select.rect", json!({"x": 40, "y": 40, "width": 16, "height": 16})).unwrap();
+        app.run("edit.fill", json!({"color": "#0000ff"})).unwrap();
+        let b = app.session.active().unwrap().active_layer.unwrap();
+        app.run("layer.select", json!({"layer": a.0, "mode": "replace"})).unwrap();
+        app.run("layer.select", json!({"layer": b.0, "mode": "add"})).unwrap();
+        assert_eq!(app.session.active().unwrap().selected_layers().len(), 2);
+
+        app.ui.tool = Tool::Move;
+        app.ui.tool_options.move_auto_select = true;
+        drag(&mut app, [80.0, 80.0], [80.0, 80.0], egui::Modifiers::NONE);
+
+        {
+            let st = app.session.active().unwrap();
+            assert!(st.selected_layers().is_empty(), "empty-canvas click clears the Layers selection");
+            assert!(st.active_layer.is_none(), "no active layer remains selected");
+        }
+
+        app.run("layer.select", json!({"layer": a.0, "mode": "replace"})).unwrap();
+        app.run("layer.select", json!({"layer": b.0, "mode": "add"})).unwrap();
+        drag(&mut app, [80.0, 80.0], [80.0, 80.0], egui::Modifiers::SHIFT);
+        assert_eq!(app.session.active().unwrap().selected_layers().len(), 2, "⇧-click on empty canvas preserves the selection");
     }
 }
