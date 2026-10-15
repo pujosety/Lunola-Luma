@@ -66,6 +66,8 @@ dispatch2 = { version = "=0.3.1", default-features = false, features = ["std"] }
 [target.'cfg(target_os = "linux")'.dependencies]
 photocraft-cms = { workspace = true }
 x11rb = { version = "=0.13.2", default-features = false, features = ["image", "randr", "xkb"] }
+# Wayland image offers not exposed as PNG by arboard (`services.rs`, upstream #2546).
+wl-clipboard-rs = { version = "=0.9.4", default-features = false }
 # Wayland desktop color selection through the existing XDG portal transport.
 zbus = "=5.19.0"
 # Already used by the portal stack; bounded waits let cancelling close the OS request.
