@@ -161,4 +161,4 @@ At base commit `67f3154ff3fc44d6c961f4eefbfb0285a8a0f086`, `cargo fmt --all -- -
 - Run `cargo audit`/advisory scanning and the configured fuzz suite when those tools/runners are available; establish the private disclosure route as repository policy if maintainers choose to provide one.
 - Expand structural undo/reorder/ungroup tests, multi-file-as-layers tests, fresh-process workspace layout tests, and native overwrite-dialog tests.
 
-**Repository snapshot:** branch `fix/luma-stability-overhaul` has three local code commits ahead of `lunola/main`; no push was performed. The audit report is a new documentation file and will be committed separately.
+**Audit snapshot at initial report commit:** the three code fixes above plus report commit `12fd7ae757040f53d10adc6558c8675361babbc6` were local (four commits ahead of `lunola/main`); no push had been performed.
