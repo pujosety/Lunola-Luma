@@ -68,6 +68,8 @@ pub struct TransformPreview {
     /// A layer with a style: its pixels composited with the style as the box has them now,
     /// drawn instead of the bare pixels (transform_fx.rs, #3653).
     styled: Option<crate::transform_fx::StyledPreview>,
+    /// Multiple selected layers previewed in stack order, with one shared transform box.
+    multi: Option<MultiLayerPreview>,
     gesture: Option<Gesture>,
     /// Warp-mode drag in progress.
     warp_drag: Option<WarpDrag>,
@@ -93,6 +95,39 @@ pub struct TransformPreview {
     pub(crate) content_aware: Option<crate::cas_transform::Live>,
 }
 
+/// State for a multi-layer transform. `selection` is the exact UI selection to watch while the
+/// box is open; `targets` are its normalized roots, and `items` contains the visible preview layers
+/// in document stack order.
+struct MultiLayerPreview {
+    selection: Vec<LayerId>,
+    targets: Vec<LayerId>,
+    items: Vec<MovingLayerPreview>,
+}
+
+struct MovingLayerPreview {
+    id: LayerId,
+    /// Source rectangle inside the shared transform frame.
+    rect: [f64; 4],
+    texture: crate::transform_tex::PreviewTextures,
+    opacity: f32,
+    above: Option<Above>,
+    styled: Option<crate::transform_fx::StyledPreview>,
+}
+
+impl TransformPreview {
+    pub(crate) fn multi_targets(&self) -> Option<&[LayerId]> {
+        self.multi.as_ref().map(|multi| multi.targets.as_slice())
+    }
+}
+
+struct StyledFrameSource<'a> {
+    id: LayerId,
+    texture: &'a crate::transform_tex::PreviewTextures,
+    styled: Option<&'a crate::transform_fx::StyledPreview>,
+    quad: [[f64; 2]; 4],
+    scale: f32,
+}
+
 /// What [`follow_edits`] needs to rebuild the preview document.
 #[derive(Clone, Copy, Debug)]
 struct Follow {
@@ -109,13 +144,34 @@ pub const LOCKED: &str = "Could not complete the Free Transform command because 
 /// Why Edit › Transform's modes and Warp refuse while Content-Aware Scale's box is open.
 pub const CAS_ONLY_SCALES: &str = "Content-Aware Scale only scales: commit or cancel it first";
 
-/// Grab radius of the box's handles, in screen points. Generous, so a corner is easy to catch;
-/// just beyond it, outside the box, a drag rotates.
-pub const HANDLE_PX: f64 = 12.0;
+/// Screen-space radius of the box's handle hit targets; keeping it in points makes controls
+/// usable at any canvas zoom.
+pub const HANDLE_PX: f64 = 14.0;
+/// Screen-space square size of the visible transform handles.
+pub(crate) const HANDLE_SIZE_PX: f32 = 11.0;
+
+pub(crate) fn handle_rect(center: Pos2) -> egui::Rect {
+    egui::Rect::from_center_size(center, vec2(HANDLE_SIZE_PX, HANDLE_SIZE_PX))
+}
+
+/// A selected layer can retain its base texture, a covering composite, and a styled composite.
+/// Each `PreviewTextures` chain also retains mip levels (~4/3 of its base pixels), so budget four
+/// base-level equivalents per target to cap the aggregate even when every selected layer is styled.
+const MULTI_PREVIEW_PIXELS_BUDGET: usize = 32 * 1024 * 1024;
+const MULTI_PREVIEW_TEXTURE_EQUIVALENTS_PER_TARGET: usize = 4;
+fn multi_preview_side(device_max_side: usize, targets: usize) -> usize {
+    let textures = targets.saturating_mul(MULTI_PREVIEW_TEXTURE_EQUIVALENTS_PER_TARGET).max(1);
+    let pixels_per_texture = MULTI_PREVIEW_PIXELS_BUDGET / textures;
+    device_max_side.min((pixels_per_texture as f64).sqrt() as usize).max(1)
+}
+
+fn handle_tolerance_at_zoom(zoom: f32) -> f64 {
+    HANDLE_PX / f64::from(zoom.max(0.01))
+}
 
 /// [`HANDLE_PX`] in document pixels at the current zoom.
 pub fn handle_tolerance(app: &PhotocraftApp) -> f64 {
-    HANDLE_PX / app.point_zoom().max(0.01) as f64
+    handle_tolerance_at_zoom(app.point_zoom())
 }
 
 /// The box as one undo step restores it.
@@ -179,12 +235,26 @@ pub fn begin(app: &mut PhotocraftApp, ctx: &egui::Context) -> Result<(), String>
         app.run("select.drop", json!({}))?;
     }
     let target = crate::canvas::paint_target(app);
-    let st = app.session.active().ok_or("no document")?;
-    let (doc, revision) = (st.doc.clone(), st.revision);
-    let lone = photocraft_engine::transform_cmds::lone_target(&doc, st.active_layer, &json!({ "target": target })).map_err(|e| e.to_string())?.cloned();
+    let (lone, selected_count) = {
+        let st = app.session.active().ok_or("no document")?;
+        let lone = photocraft_engine::transform_cmds::lone_target(&st.doc, st.active_layer, &json!({ "target": target })).map_err(|e| e.to_string())?.cloned();
+        (lone, st.selected_layers().len())
+    };
+    let multi_pixels = selected_count > 1 && target == json!("pixels");
+    if multi_pixels {
+        crate::type_tool::commit(app);
+        let (doc, revision, selection, active) = {
+            let st = app.session.active().ok_or("no document")?;
+            (st.doc.clone(), st.revision, st.selected_layers(), st.active_layer)
+        };
+        return begin_multi(app, ctx, doc, revision, selection, active);
+    }
     if let Some(surf) = lone {
+        let doc = app.session.active().ok_or("no document")?.doc.clone();
         return begin_lone(app, ctx, doc, surf, target);
     }
+    let st = app.session.active().ok_or("no document")?;
+    let (doc, revision) = (st.doc.clone(), st.revision);
     let id = st.active_layer.ok_or("no active layer")?;
     let layer = doc.layer(id).ok_or("no layer")?;
     if photocraft_engine::transform_cmds::locked_for_transform(&doc, id) {
@@ -232,6 +302,7 @@ pub fn begin(app: &mut PhotocraftApp, ctx: &egui::Context) -> Result<(), String>
         opacity: layer.opacity * layer.fill_opacity,
         above: Some(above),
         styled: styled.then(|| crate::transform_fx::StyledPreview::new(format!("transform-{session}-styled"))),
+        multi: None,
         follow: Some(Follow { revision, hidden: lifted.is_none() }),
         committing: None,
         gesture: None,
@@ -248,6 +319,136 @@ pub fn begin(app: &mut PhotocraftApp, ctx: &egui::Context) -> Result<(), String>
     app.ui.transform = Some(TransformSession {
         session,
         layer: id.0,
+        rect,
+        quad: corners(rect),
+        pivot: [(rect[0] + rect[2]) / 2.0, (rect[1] + rect[3]) / 2.0],
+        interpolation: "bicubic".into(),
+        warp: None,
+        selection: false,
+        target: None,
+        path: None,
+        made: None,
+        mode: Default::default(),
+        content_aware: None,
+        skew_v: 0.0,
+    });
+    start_steps(app);
+    Ok(())
+}
+
+/// Start one transform box around all selected layers. Preview each target at its original stack
+/// position; unsupported blend/clipping arrangements are refused instead of showing a misleading
+/// composite.
+fn begin_multi(
+    app: &mut PhotocraftApp,
+    ctx: &egui::Context,
+    doc: Arc<Document>,
+    revision: u64,
+    selection: Vec<LayerId>,
+    active: Option<LayerId>,
+) -> Result<(), String> {
+    let targets = photocraft_engine::transform_cmds::transform_targets(&doc, &selection);
+    if targets.is_empty() {
+        return Err("no layers selected".into());
+    }
+    for id in &targets {
+        let layer = doc.layer(*id).ok_or("selected layer no longer exists")?;
+        if doc.is_background(*id) {
+            return Err("Background layers cannot be transformed together with other selected layers".into());
+        }
+        if photocraft_engine::transform_cmds::locked_for_transform(&doc, *id) {
+            app.ui.open_dialog(crate::state::DialogKind::Error, json!({"message": tl!(LOCKED)}).as_object().cloned().unwrap_or_default());
+            return Err(LOCKED.into());
+        }
+        if matches!(layer.content, LayerContent::Adjustment(_)) && layer.mask.is_none() {
+            return Err("Adjustment layers have nothing to transform".into());
+        }
+        if !plain(layer) || has_clipping_relation(&doc.layers, *id) {
+            return Err("Multi-layer Free Transform cannot preview non-Normal or clipped layer stacks yet".into());
+        }
+    }
+    let bounds = targets
+        .iter()
+        .filter_map(|id| doc.layer(*id).map(|layer| photocraft_engine::transform_cmds::transform_bounds(&doc, layer)))
+        .fold(photocraft_geom::Rect::EMPTY, |a, b| a.union(&b));
+    if bounds.is_empty() {
+        return Err("Could not transform: selected layers have no content in the current selection".into());
+    }
+    let rect = [bounds.x0 as f64, bounds.y0 as f64, bounds.x1 as f64, bounds.y1 as f64];
+    let primary = active.filter(|id| targets.contains(id)).or_else(|| targets.last().copied()).ok_or("no active layer")?;
+    crate::type_tool::commit(app);
+    let session = app.ui.alloc_id();
+    let device_max_side = ctx.input(|i| i.max_texture_side).max(app.gpu.as_ref().map_or(1, |g| g.max_texture_side()));
+    let max_side = multi_preview_side(device_max_side, targets.len());
+    let mut pd = (*doc).clone();
+    let mut items = Vec::new();
+    for id in &targets {
+        let layer = doc.layer(*id).ok_or("selected layer no longer exists")?;
+        let b = photocraft_engine::transform_cmds::transform_bounds(&doc, layer);
+        if b.is_empty() {
+            continue;
+        }
+        let mut lifted = None;
+        if let Some(sel) = doc.selection.clone().filter(|_| !photocraft_engine::transform_cmds::moves_whole(layer) && layer.surface().is_some()) {
+            if let Some(surface) = pd.layer_mut(*id).and_then(|l| l.surface_mut()) {
+                let (selected, rest) = photocraft_engine::transform_cmds::split_selected(surface, &sel).map_err(|e| e.to_string())?;
+                *surface = rest;
+                lifted = Some(selected);
+            }
+        } else if let Some(layer) = pd.layer_mut(*id) {
+            layer.visible = false;
+        }
+        let above = Above::new_excluding(ctx, format!("transform-{session}-{}-above", id.0), &doc, *id, max_side, &targets);
+        if !above.complete {
+            return Err("Multi-layer Free Transform cannot preview adjustment or blend layers above the selection yet".into());
+        }
+        above.hide_in(&mut pd.layers);
+        let styled = lifted.is_none() && photocraft_compose::effects::has_effects(layer);
+        let (image, uv) = preview_image(&doc, *id, lifted.as_ref(), b, max_side, styled);
+        let texture = crate::transform_tex::PreviewTextures::new(ctx, format!("transform-{session}-{}", id.0), image, uv);
+        items.push(MovingLayerPreview {
+            id: *id,
+            rect: [b.x0 as f64, b.y0 as f64, b.x1 as f64, b.y1 as f64],
+            texture,
+            opacity: layer.opacity * layer.fill_opacity,
+            above: Some(above),
+            styled: styled.then(|| crate::transform_fx::StyledPreview::new(format!("transform-{session}-{}-styled", id.0))),
+        });
+    }
+    if items.is_empty() {
+        return Err("Could not transform: selected layers have no visible content".into());
+    }
+    pd.selection = None;
+    let texture = crate::transform_tex::PreviewTextures::new(
+        ctx,
+        format!("transform-{session}-placeholder"),
+        egui::ColorImage::new([1, 1], vec![Color32::TRANSPARENT]),
+        [1.0, 1.0],
+    );
+    app.transform_preview = Some(TransformPreview {
+        session,
+        doc: Arc::new(pd),
+        texture,
+        opacity: 1.0,
+        above: None,
+        styled: None,
+        multi: Some(MultiLayerPreview { selection, targets, items }),
+        follow: Some(Follow { revision, hidden: true }),
+        committing: None,
+        gesture: None,
+        warp_drag: None,
+        split_tool: None,
+        split_pointer: None,
+        split_placing: false,
+        split_quick: false,
+        steps: Steps::default(),
+        tool: app.ui.tool,
+        path: None,
+        content_aware: None,
+    });
+    app.ui.transform = Some(TransformSession {
+        session,
+        layer: primary.0,
         rect,
         quad: corners(rect),
         pivot: [(rect[0] + rect[2]) / 2.0, (rect[1] + rect[3]) / 2.0],
@@ -332,6 +533,7 @@ pub(crate) fn begin_content_aware(
         texture,
         opacity: layer.opacity * layer.fill_opacity,
         above: Some(above),
+        multi: None,
         follow: Some(Follow { revision, hidden: false }),
         committing: None,
         gesture: None,
@@ -454,6 +656,7 @@ fn begin_lone(
         opacity: 0.6,
         above: None,
         styled: None,
+        multi: None,
         follow: None,
         committing: None,
         gesture: None,
@@ -517,6 +720,7 @@ fn begin_path(app: &mut PhotocraftApp, ctx: &egui::Context, params: serde_json::
         path: Some(path),
         content_aware: None,
         above: None,
+        multi: None,
         follow: None,
         committing: None,
     });
@@ -592,6 +796,7 @@ pub fn begin_selection(app: &mut PhotocraftApp, ctx: &egui::Context) -> Result<(
         opacity: 1.0,
         above: None,
         styled: None,
+        multi: None,
         follow: None,
         committing: None,
         gesture: None,
@@ -629,6 +834,9 @@ pub fn begin_selection(app: &mut PhotocraftApp, ctx: &egui::Context) -> Result<(
 pub fn begin_warp(app: &mut PhotocraftApp, ctx: &egui::Context) -> Result<(), String> {
     if app.ui.transform.as_ref().is_some_and(|t| t.content_aware.is_some()) {
         return Err(CAS_ONLY_SCALES.into());
+    }
+    if app.transform_preview.as_ref().is_some_and(|pv| pv.multi.is_some()) {
+        return Err("Warp is not supported for a multi-layer transform".into());
     }
     let fresh = app.ui.transform.is_none();
     if fresh {
@@ -825,13 +1033,21 @@ struct Above {
     max_side: usize,
     /// The covering layers (whole layers or groups, at any depth).
     ids: Vec<LayerId>,
+    /// Other targets in a multi-layer transform are drawn separately, never at their old positions.
+    excluded: Vec<LayerId>,
+    /// False if the stack above this target cannot be represented as an independent overlay.
+    complete: bool,
     /// Their composite and the canvas area it covers; `None` when nothing visible covers the layer.
     shown: Option<(crate::transform_tex::PreviewTextures, photocraft_geom::Rect)>,
 }
 
 impl Above {
     fn new(ctx: &egui::Context, name: String, doc: &Document, id: LayerId, max_side: usize) -> Self {
-        let mut a = Self { ctx: ctx.clone(), name, max_side, ids: Vec::new(), shown: None };
+        Self::new_excluding(ctx, name, doc, id, max_side, &[])
+    }
+
+    fn new_excluding(ctx: &egui::Context, name: String, doc: &Document, id: LayerId, max_side: usize, excluded: &[LayerId]) -> Self {
+        let mut a = Self { ctx: ctx.clone(), name, max_side, ids: Vec::new(), excluded: excluded.to_vec(), complete: true, shown: None };
         a.rebuild(doc, id);
         a
     }
@@ -839,7 +1055,8 @@ impl Above {
     /// Composite what covers layer `id` of `doc` (the live document) again.
     fn rebuild(&mut self, doc: &Document, id: LayerId) {
         self.ids.clear();
-        covering(&doc.layers, id, &mut self.ids);
+        self.complete = true;
+        covering(&doc.layers, id, &self.excluded, &mut self.ids, &mut self.complete);
         let mut up = doc.clone();
         show_only(&mut up.layers, &self.ids);
         let canvas = up.bounds();
@@ -925,7 +1142,7 @@ fn plain(l: &photocraft_doc::Layer) -> bool {
 /// stops the search, so it and everything under it stay in the document under the box as before
 /// (an adjustment there keeps applying to the layers under it). A clipping group goes as a whole,
 /// and the layers clipped to `id` (or to the group holding it) stay with it.
-fn covering(layers: &[photocraft_doc::Layer], id: LayerId, out: &mut Vec<LayerId>) {
+fn covering(layers: &[photocraft_doc::Layer], id: LayerId, excluded: &[LayerId], out: &mut Vec<LayerId>, complete: &mut bool) {
     let mut end = layers.len();
     while end > 0 {
         // The clipping group ending at `end`: its base and the layers clipped to it.
@@ -935,22 +1152,56 @@ fn covering(layers: &[photocraft_doc::Layer], id: LayerId, out: &mut Vec<LayerId
         }
         let unit = layers.get(start..end).unwrap_or_default();
         if unit.iter().any(|l| contains(l, id)) {
+            if unit.len() > 1 {
+                *complete = false;
+            }
             // A group holding `id` with nothing clipped to it: go on inside it.
             if let [g] = unit
                 && g.id != id
                 && let LayerContent::Group(group) = &g.content
-                && matches!(g.blend, photocraft_color::BlendMode::Normal | photocraft_color::BlendMode::PassThrough)
             {
-                covering(&group.children, id, out);
+                if matches!(g.blend, photocraft_color::BlendMode::Normal | photocraft_color::BlendMode::PassThrough) {
+                    covering(&group.children, id, excluded, out, complete);
+                } else {
+                    *complete = false;
+                }
             }
             return;
         }
         if !unit.iter().all(plain) {
+            *complete = false;
             return;
         }
-        out.extend(unit.iter().map(|l| l.id));
+        out.extend(unit.iter().filter(|l| !excluded.iter().any(|target| contains(l, *target))).map(|l| l.id));
         end = start;
     }
+}
+
+/// A selected layer in a clipping unit cannot be previewed independently without changing how the
+/// clipped siblings composite.
+fn has_clipping_relation(layers: &[photocraft_doc::Layer], id: LayerId) -> bool {
+    let mut end = layers.len();
+    while end > 0 {
+        let mut start = end - 1;
+        while start > 0 && layers.get(start).is_some_and(|l| l.clipped) {
+            start -= 1;
+        }
+        let unit = layers.get(start..end).unwrap_or_default();
+        if unit.iter().any(|l| contains(l, id)) {
+            if unit.len() > 1 {
+                return true;
+            }
+            if let [g] = unit
+                && g.id != id
+                && let LayerContent::Group(group) = &g.content
+            {
+                return has_clipping_relation(&group.children, id);
+            }
+            return false;
+        }
+        end = start;
+    }
+    false
 }
 
 /// Hide everything in `layers` but the `keep` layers and the groups holding them.
@@ -1022,6 +1273,11 @@ pub fn commit(app: &mut PhotocraftApp) {
         }
         return;
     }
+    let layers = preview.as_ref().and_then(|pv| pv.multi.as_ref()).map(|multi| multi.targets.clone());
+    if layers.is_some() && t.warp.is_some() {
+        keep_open(app, t, preview, "Warp is not supported for a multi-layer transform".into());
+        return;
+    }
     let made = t.made;
     let r = if let Some(w) = &t.warp {
         // Type with a Warp Text can be warped back to None; the engine skips an unchanged style.
@@ -1033,7 +1289,12 @@ pub fn commit(app: &mut PhotocraftApp) {
         if t.quad == corners(t.rect) {
             return; // untouched: nothing to do and no history step; a ⌥⌘T copy or a place stays
         }
-        let mut p = json!({"layer": t.layer, "rect": t.rect, "quad": t.quad, "interpolation": t.interpolation});
+        let mut p = json!({"rect": t.rect, "quad": t.quad, "interpolation": t.interpolation});
+        if let Some(layers) = &layers {
+            p["layers"] = json!(layers.iter().map(|id| id.0).collect::<Vec<_>>());
+        } else {
+            p["layer"] = json!(t.layer);
+        }
         if let Some(target) = &t.target {
             p["target"] = target.clone();
         }
@@ -1113,6 +1374,10 @@ pub fn end_if_left(app: &mut PhotocraftApp) {
     let selection = t.selection;
     let preview_doc_id = app.transform_preview.as_ref().map(|pv| pv.doc.id);
     let switched_document = preview_doc_id.is_some_and(|id| id != st.doc.id);
+    let multi = app.transform_preview.as_ref().and_then(|pv| pv.multi.as_ref());
+    let multi_selection_changed = multi.is_some_and(|m| st.selected_layers() != m.selection);
+    let active_left_targets = multi.is_some_and(|m| st.active_layer.is_some_and(|active| !m.targets.contains(&active)));
+    let single_active_changed = multi.is_none() && !selection && st.active_layer.is_some_and(|active| active.0 != layer.0);
 
     let editing_placed_smart_object = switched_document
         && made == Some(MadeLayer::Place)
@@ -1124,8 +1389,7 @@ pub fn end_if_left(app: &mut PhotocraftApp) {
         app.transform_preview = None;
     } else if switched_document || st.doc.layer(layer).is_none() {
         cancel(app);
-    } else if app.transform_preview.as_ref().is_some_and(|pv| pv.tool != app.ui.tool)
-        || (!selection && st.active_layer.is_some_and(|active| active.0 != layer.0))
+    } else if app.transform_preview.as_ref().is_some_and(|pv| pv.tool != app.ui.tool) || multi_selection_changed || active_left_targets || single_active_changed
     {
         commit(app);
         // Picking another tool or layer can't leave a refused transform open: it ends, as Esc would.
@@ -1141,6 +1405,22 @@ pub fn end_if_left(app: &mut PhotocraftApp) {
 /// rebuilt from the current one. The moving pixels keep the session's. Called before the canvas
 /// reads the preview, so it never caches a revision with the old preview.
 pub fn follow_edits(app: &mut PhotocraftApp) {
+    // A multi-preview has one texture and above-stack composite per selected target. If any document
+    // edit lands while it is open, commit against its original target snapshot rather than display
+    // stale pixels or attempt a partial rebuild.
+    let multi_stale = app
+        .transform_preview
+        .as_ref()
+        .and_then(|pv| {
+            let st = app.session.active().filter(|st| st.doc.id == pv.doc.id)?;
+            let follow = pv.follow.as_ref()?;
+            Some(pv.multi.is_some() && st.revision != follow.revision)
+        })
+        .unwrap_or(false);
+    if multi_stale {
+        commit(app);
+        return;
+    }
     let (Some(t), Some(pv)) = (&app.ui.transform, app.transform_preview.as_mut()) else { return };
     let Some(follow) = pv.follow.as_mut() else { return };
     let Some(st) = app.session.active().filter(|st| st.doc.id == pv.doc.id && st.revision != follow.revision) else { return };
@@ -2041,8 +2321,21 @@ pub fn cursor(app: &PhotocraftApp, p: [f64; 2], quick_split: bool) -> Option<Cur
 /// the image to the far side, where its cells would wrap round infinity; the preview leaves them
 /// out, as the committed warp does (#4863).
 fn front_vertices(h: &Homography, n: usize) -> Vec<bool> {
-    let front = h.front_side([0.0, 0.0, 1.0, 1.0]);
-    (0..=n).flat_map(|j| (0..=n).map(move |i| (i as f64 / n as f64, j as f64 / n as f64))).map(|(u, v)| front * h.w(u, v) > 1e-9).collect()
+    front_vertices_in_rect(h, [0.0, 0.0, 1.0, 1.0], n)
+}
+
+/// Horizon mask for a grid sampled over a non-unit source rectangle.
+fn front_vertices_in_rect(h: &Homography, rect: [f64; 4], n: usize) -> Vec<bool> {
+    let n = n.max(1);
+    let front = h.front_side(rect);
+    (0..=n)
+        .flat_map(|j| (0..=n).map(move |i| (i as f64 / n as f64, j as f64 / n as f64)))
+        .map(|(u, v)| {
+            let x = rect[0] + u * (rect[2] - rect[0]);
+            let y = rect[1] + v * (rect[3] - rect[1]);
+            front * h.w(x, y) > 1e-9
+        })
+        .collect()
 }
 
 /// Warped preview of the moving pixels plus the box, handles and reference point.
@@ -2060,50 +2353,54 @@ pub fn draw_overlay(app: &PhotocraftApp, painter: &egui::Painter, xf: &ViewXform
         draw_warp(painter, xf, t, w, pv, guide);
         return;
     }
-    let ctx = painter.ctx();
-    let styled = styled_frame(app, xf.zoom * ctx.pixels_per_point(), ctx.input(|i| i.pointer.any_down())).and_then(|(s, frame)| s.texture(ctx, &frame));
-    if let Some((tex, r)) = styled {
-        let mut mesh = egui::Mesh::with_texture(tex);
-        for (x, y, u, v) in [(r[0], r[1], 0.0, 0.0), (r[2], r[1], 1.0, 0.0), (r[2], r[3], 1.0, 1.0), (r[0], r[3], 0.0, 1.0)] {
-            mesh.vertices.push(egui::epaint::Vertex { pos: pos2(x, y), uv: pos2(u, v), color: Color32::WHITE });
-        }
-        mesh.add_triangle(0, 1, 2);
-        mesh.add_triangle(0, 2, 3);
-        painter.add(clip_to_canvas(mesh, canvas_size(pv), |p| xf.to_screen(p.x, p.y)));
-    } else if let Some(h) = Homography::rect_to_quad([0.0, 0.0, 1.0, 1.0], t.quad) {
-        // A 24×24 grid keeps perspective previews straight.
-        let n = 24;
-        let zoom = xf.zoom * painter.ctx().pixels_per_point();
-        // Content-Aware Scale shows its latest live result once there is one.
-        let (tex, uv) = match pv.content_aware.as_ref().and_then(|l| l.shown(t)) {
-            Some((texture, texel)) => texture.pick(painter.ctx(), zoom, texel, false),
-            None => pv.texture.pick(painter.ctx(), zoom, quad_scale(t), t.interpolation == "nearest"),
-        };
-        let mut mesh = egui::Mesh::with_texture(tex);
-        let tint = Color32::from_white_alpha((pv.opacity.clamp(0.0, 1.0) * 255.0) as u8);
-        let ahead = front_vertices(&h, n);
-        for j in 0..=n {
-            for i in 0..=n {
-                let (u, v) = (i as f64 / n as f64, j as f64 / n as f64);
-                let (x, y) = h.apply(u, v);
-                mesh.vertices.push(egui::epaint::Vertex { pos: pos2(x as f32, y as f32), uv: pos2(u as f32 * uv[0], v as f32 * uv[1]), color: tint });
+    if let Some(multi) = &pv.multi {
+        draw_multi_preview(app, painter, xf, t, pv, multi);
+    } else {
+        let ctx = painter.ctx();
+        let styled = styled_frame(app, xf.zoom * ctx.pixels_per_point(), ctx.input(|i| i.pointer.any_down())).and_then(|(s, frame)| s.texture(ctx, &frame));
+        if let Some((tex, r)) = styled {
+            let mut mesh = egui::Mesh::with_texture(tex);
+            for (x, y, u, v) in [(r[0], r[1], 0.0, 0.0), (r[2], r[1], 1.0, 0.0), (r[2], r[3], 1.0, 1.0), (r[0], r[3], 0.0, 1.0)] {
+                mesh.vertices.push(egui::epaint::Vertex { pos: pos2(x, y), uv: pos2(u, v), color: Color32::WHITE });
             }
-        }
-        for j in 0..n {
-            for i in 0..n {
-                let a = (j * (n + 1) + i) as u32;
-                for tri in [[a, a + 1, a + n as u32 + 2], [a, a + n as u32 + 2, a + n as u32 + 1]] {
-                    // A cell with a corner past the horizon would stretch across the canvas (#4863).
-                    if tri.iter().all(|&k| ahead[k as usize]) {
-                        mesh.add_triangle(tri[0], tri[1], tri[2]);
+            mesh.add_triangle(0, 1, 2);
+            mesh.add_triangle(0, 2, 3);
+            painter.add(clip_to_canvas(mesh, canvas_size(pv), |p| xf.to_screen(p.x, p.y)));
+        } else if let Some(h) = Homography::rect_to_quad([0.0, 0.0, 1.0, 1.0], t.quad) {
+            // A 24×24 grid keeps perspective previews straight.
+            let n = 24;
+            let zoom = xf.zoom * painter.ctx().pixels_per_point();
+            // Content-Aware Scale shows its latest live result once there is one.
+            let (tex, uv) = match pv.content_aware.as_ref().and_then(|l| l.shown(t)) {
+                Some((texture, texel)) => texture.pick(painter.ctx(), zoom, texel, false),
+                None => pv.texture.pick(painter.ctx(), zoom, quad_scale(t), t.interpolation == "nearest"),
+            };
+            let mut mesh = egui::Mesh::with_texture(tex);
+            let tint = Color32::from_white_alpha((pv.opacity.clamp(0.0, 1.0) * 255.0) as u8);
+            let ahead = front_vertices(&h, n);
+            for j in 0..=n {
+                for i in 0..=n {
+                    let (u, v) = (i as f64 / n as f64, j as f64 / n as f64);
+                    let (x, y) = h.apply(u, v);
+                    mesh.vertices.push(egui::epaint::Vertex { pos: pos2(x as f32, y as f32), uv: pos2(u as f32 * uv[0], v as f32 * uv[1]), color: tint });
+                }
+            }
+            for j in 0..n {
+                for i in 0..n {
+                    let a = (j * (n + 1) + i) as u32;
+                    for tri in [[a, a + 1, a + n as u32 + 2], [a, a + n as u32 + 2, a + n as u32 + 1]] {
+                        // A cell with a corner past the horizon would stretch across the canvas (#4863).
+                        if tri.iter().all(|&k| ahead[k as usize]) {
+                            mesh.add_triangle(tri[0], tri[1], tri[2]);
+                        }
                     }
                 }
             }
+            painter.add(clip_to_canvas(mesh, canvas_size(pv), |p| xf.to_screen(p.x, p.y)));
         }
-        painter.add(clip_to_canvas(mesh, canvas_size(pv), |p| xf.to_screen(p.x, p.y)));
-    }
-    if let Some(a) = &pv.above {
-        a.draw(painter, xf);
+        if let Some(a) = &pv.above {
+            a.draw(painter, xf);
+        }
     }
     if pv.committing.is_some() {
         return;
@@ -2124,9 +2421,9 @@ pub fn draw_overlay(app: &PhotocraftApp, painter: &egui::Painter, xf: &ViewXform
     painter.add(egui::Shape::closed_line(pts.clone(), Stroke::new(1.0, accent)));
     let mids: Vec<Pos2> = (0..4).map(|i| pts[i].lerp(pts[(i + 1) % 4], 0.5)).collect();
     for p in pts.iter().chain(mids.iter()) {
-        let r = egui::Rect::from_center_size(*p, vec2(7.0, 7.0));
+        let r = handle_rect(*p);
         painter.rect_filled(r, 0.0, Color32::WHITE);
-        painter.rect_stroke(r, 0.0, Stroke::new(1.0, accent), egui::StrokeKind::Inside);
+        painter.rect_stroke(r, 0.0, Stroke::new(1.25, accent), egui::StrokeKind::Inside);
     }
     // Reference point (Photoshop's crosshair circle).
     let c = scr(t.pivot);
@@ -2150,22 +2447,99 @@ pub fn draw_overlay(app: &PhotocraftApp, painter: &egui::Painter, xf: &ViewXform
     }
 }
 
+/// Draw multi-layer previews bottom-to-top. Each target's covering stack is composited after it,
+/// so unselected layers between selected targets keep their original z-order.
+fn draw_multi_preview(app: &PhotocraftApp, painter: &egui::Painter, xf: &ViewXform, t: &TransformSession, pv: &TransformPreview, multi: &MultiLayerPreview) {
+    let ctx = painter.ctx();
+    let zoom = xf.zoom * ctx.pixels_per_point();
+    let dragging = ctx.input(|i| i.pointer.any_down());
+    let Some(group_h) = Homography::rect_to_quad(t.rect, t.quad) else { return };
+    for item in &multi.items {
+        let quad = corners(item.rect).map(|p| {
+            let (x, y) = group_h.apply(p[0], p[1]);
+            [x, y]
+        });
+        let mut local = t.clone();
+        local.rect = item.rect;
+        local.quad = quad;
+        let scale = quad_scale(&local);
+        let styled =
+            styled_frame_for_layer(app, StyledFrameSource { id: item.id, texture: &item.texture, styled: item.styled.as_ref(), quad, scale }, zoom, dragging)
+                .and_then(|(style, frame)| style.texture(ctx, &frame));
+        if let Some((tex, r)) = styled {
+            let mut mesh = egui::Mesh::with_texture(tex);
+            for (x, y, u, v) in [(r[0], r[1], 0.0, 0.0), (r[2], r[1], 1.0, 0.0), (r[2], r[3], 1.0, 1.0), (r[0], r[3], 0.0, 1.0)] {
+                mesh.vertices.push(egui::epaint::Vertex { pos: pos2(x, y), uv: pos2(u, v), color: Color32::WHITE });
+            }
+            mesh.add_triangle(0, 1, 2);
+            mesh.add_triangle(0, 2, 3);
+            painter.add(clip_to_canvas(mesh, canvas_size(pv), |p| xf.to_screen(p.x, p.y)));
+        } else if let Some(h) = Homography::rect_to_quad(item.rect, quad) {
+            let n = 24;
+            let ahead = front_vertices_in_rect(&h, item.rect, n);
+            let (tex, uv) = item.texture.pick(ctx, zoom, scale, t.interpolation == "nearest");
+            let mut mesh = egui::Mesh::with_texture(tex);
+            let tint = Color32::from_white_alpha((item.opacity.clamp(0.0, 1.0) * 255.0) as u8);
+            for j in 0..=n {
+                for i in 0..=n {
+                    let (u, v) = (i as f64 / n as f64, j as f64 / n as f64);
+                    let (x, y) = h.apply(item.rect[0] + u * (item.rect[2] - item.rect[0]), item.rect[1] + v * (item.rect[3] - item.rect[1]));
+                    mesh.vertices.push(egui::epaint::Vertex { pos: pos2(x as f32, y as f32), uv: pos2(u as f32 * uv[0], v as f32 * uv[1]), color: tint });
+                }
+            }
+            for j in 0..n {
+                for i in 0..n {
+                    let a = (j * (n + 1) + i) as u32;
+                    for tri in [[a, a + 1, a + n as u32 + 2], [a, a + n as u32 + 2, a + n as u32 + 1]] {
+                        if tri.iter().all(|&k| ahead[k as usize]) {
+                            mesh.add_triangle(tri[0], tri[1], tri[2]);
+                        }
+                    }
+                }
+            }
+            painter.add(clip_to_canvas(mesh, canvas_size(pv), |p| xf.to_screen(p.x, p.y)));
+        }
+        if let Some(above) = &item.above {
+            above.draw(painter, xf);
+        }
+    }
+}
+
 /// What the styled preview of the moving layer is drawn from (transform_fx.rs), at `zoom` screen
 /// pixels per document pixel. `None` for a layer without a style (also once it is switched off
 /// while the box is open) or a hidden one: the bare pixels are drawn instead. The style, opacity
 /// and fill are the layer's as they are now, so edits made while the box is open show.
 pub(crate) fn styled_frame(app: &PhotocraftApp, zoom: f32, dragging: bool) -> Option<(&crate::transform_fx::StyledPreview, crate::transform_fx::Frame<'_>)> {
     let (t, pv) = (app.ui.transform.as_ref()?, app.transform_preview.as_ref()?);
-    let styled = pv.styled.as_ref().filter(|_| t.warp.is_none())?;
+    styled_frame_for_layer(
+        app,
+        StyledFrameSource { id: LayerId(t.layer), texture: &pv.texture, styled: pv.styled.as_ref(), quad: t.quad, scale: quad_scale(t) },
+        zoom,
+        dragging,
+    )
+}
+
+fn styled_frame_for_layer<'a>(
+    app: &'a PhotocraftApp,
+    source: StyledFrameSource<'a>,
+    zoom: f32,
+    dragging: bool,
+) -> Option<(&'a crate::transform_fx::StyledPreview, crate::transform_fx::Frame<'a>)> {
+    let StyledFrameSource { id, texture, styled, quad, scale } = source;
+    let (t, pv) = (app.ui.transform.as_ref()?, app.transform_preview.as_ref()?);
+    if t.warp.is_some() {
+        return None;
+    }
+    let styled = styled?;
     let st = app.session.active().filter(|st| st.doc.id == pv.doc.id)?;
-    let layer = st.doc.layer(LayerId(t.layer)).filter(|l| l.visible && photocraft_compose::effects::has_effects(l))?;
+    let layer = st.doc.layer(id).filter(|l| l.visible && photocraft_compose::effects::has_effects(l))?;
     let frame = crate::transform_fx::Frame {
         doc: &st.doc,
         layer,
         revision: st.revision,
-        texels: &pv.texture,
-        quad: t.quad,
-        quad_scale: quad_scale(t),
+        texels: texture,
+        quad,
+        quad_scale: scale,
         nearest: t.interpolation == "nearest",
         zoom,
         dragging,
@@ -2972,6 +3346,29 @@ mod tests {
             content_aware: None,
             skew_v: 0.0,
         }
+    }
+
+    #[test]
+    fn multi_layer_preview_budget_bounds_styled_and_mipped_texture_chains() {
+        for targets in [2, 3, 16, 100] {
+            let side = multi_preview_side(16_384, targets);
+            let total = side.saturating_mul(side).saturating_mul(targets.saturating_mul(MULTI_PREVIEW_TEXTURE_EQUIVALENTS_PER_TARGET));
+            assert!(total <= MULTI_PREVIEW_PIXELS_BUDGET, "{targets} targets at side {side} use {total} px");
+        }
+        assert_eq!(multi_preview_side(512, 2), 512, "respect a smaller device texture limit");
+    }
+
+    #[test]
+    fn transform_handle_hit_targets_scale_with_zoom_but_keep_a_large_visible_size() {
+        assert_eq!(handle_tolerance_at_zoom(0.5), 28.0);
+        assert_eq!(handle_tolerance_at_zoom(1.0), 14.0);
+        assert_eq!(handle_tolerance_at_zoom(2.0), 7.0);
+        let center = pos2(31.0, 47.0);
+        let rect = handle_rect(center);
+        assert_eq!(rect.center(), center);
+        assert_eq!(rect.width(), HANDLE_SIZE_PX);
+        assert_eq!(rect.height(), HANDLE_SIZE_PX);
+        assert_eq!(HANDLE_SIZE_PX, 11.0, "visible handles stay screen-sized at every canvas zoom");
     }
 
     #[test]
@@ -4077,6 +4474,15 @@ mod tests {
     }
 
     #[test]
+    fn the_preview_horizon_mask_uses_the_non_unit_source_rect() {
+        let quad = [[0.0, 0.0], [300.0, 0.0], [60.0, 60.0], [0.0, 300.0]];
+        let unit = Homography::rect_to_quad([0.0, 0.0, 1.0, 1.0], quad).unwrap();
+        let rect = [8.0, 12.0, 108.0, 112.0];
+        let offset = Homography::rect_to_quad(rect, quad).unwrap();
+        assert_eq!(front_vertices(&unit, 24), front_vertices_in_rect(&offset, rect, 24));
+    }
+
+    #[test]
     fn hovering_just_outside_a_corner_asks_for_the_rotate_cursor() {
         let mut app = app_with_square(256, photocraft_geom::Rect::new(32, 32, 160, 160));
         crate::menus::invoke(&mut app, &egui::Context::default(), "edit.freeTransform", json!({})).unwrap();
@@ -4265,6 +4671,159 @@ mod tests {
         assert!(crate::canvas_tool_menu::available(&app, &menu, "edit.transform.warp"));
     }
 
+    #[test]
+    fn selected_layers_share_one_box_and_commit_as_one_undo_step() {
+        let mut app = app_with_square(64, photocraft_geom::Rect::new(8, 8, 16, 16));
+        let red = app.session.active().unwrap().active_layer.unwrap();
+        app.session.execute("layer.new.layer", json!({})).unwrap();
+        app.session
+            .edit("paint", |doc, active| {
+                doc.layer_mut(active.unwrap()).unwrap().surface_mut().unwrap().fill_rect(photocraft_geom::Rect::new(40, 40, 48, 48), &[0.0, 0.0, 1.0, 1.0]);
+                Ok(())
+            })
+            .unwrap();
+        let blue = app.session.active().unwrap().active_layer.unwrap();
+        app.session.execute("layer.select", json!({"layer": red.0, "mode": "replace"})).unwrap();
+        app.session.execute("layer.select", json!({"layer": blue.0, "mode": "add"})).unwrap();
+
+        let ctx = egui::Context::default();
+        begin(&mut app, &ctx).unwrap();
+        let t = app.ui.transform.as_mut().unwrap();
+        assert_eq!(t.rect, [8.0, 8.0, 48.0, 48.0], "bounds include both selected layers");
+        let multi = app.transform_preview.as_ref().unwrap().multi.as_ref().unwrap();
+        assert_eq!(multi.targets.len(), 2);
+        assert_eq!(multi.items.len(), 2);
+
+        let history_before = app.session.active().unwrap().history.past_len();
+        for p in &mut t.quad {
+            p[0] += 5.0;
+            p[1] += 3.0;
+        }
+        commit(&mut app);
+        assert!(app.ui.transform.is_none());
+        let st = app.session.active().unwrap();
+        assert_eq!(st.history.past_len(), history_before + 1, "one shared transform creates one history step");
+        assert_eq!(st.doc.layer(red).unwrap().surface().unwrap().content_bounds(), photocraft_geom::Rect::new(13, 11, 21, 19));
+        assert_eq!(st.doc.layer(blue).unwrap().surface().unwrap().content_bounds(), photocraft_geom::Rect::new(45, 43, 53, 51));
+    }
+
+    #[test]
+    fn changing_the_multi_layer_selection_ends_the_box_without_changing_the_new_selection() {
+        let mut app = app_with_square(64, photocraft_geom::Rect::new(8, 8, 16, 16));
+        let first = app.session.active().unwrap().active_layer.unwrap();
+        app.session.execute("layer.new.layer", json!({})).unwrap();
+        app.session
+            .edit("paint", |doc, active| {
+                doc.layer_mut(active.unwrap()).unwrap().surface_mut().unwrap().fill_rect(photocraft_geom::Rect::new(32, 32, 40, 40), &[0.0, 0.0, 1.0, 1.0]);
+                Ok(())
+            })
+            .unwrap();
+        let second = app.session.active().unwrap().active_layer.unwrap();
+        app.session.execute("layer.select", json!({"layer": first.0, "mode": "replace"})).unwrap();
+        app.session.execute("layer.select", json!({"layer": second.0, "mode": "add"})).unwrap();
+        begin(&mut app, &egui::Context::default()).unwrap();
+
+        app.session.execute("layer.select", json!({"layer": second.0, "mode": "replace"})).unwrap();
+        end_if_left(&mut app);
+        assert!(app.ui.transform.is_none(), "selection change commits/exits the old target snapshot");
+        assert_eq!(app.session.active().unwrap().selected_layers(), vec![second]);
+    }
+
+    #[test]
+    fn multi_layer_preview_keeps_intervening_stack_layers_and_excludes_other_targets() {
+        let mut app = app_with_square(64, photocraft_geom::Rect::new(8, 8, 16, 16));
+        let red = app.session.active().unwrap().active_layer.unwrap();
+        app.session.execute("layer.new.layer", json!({})).unwrap();
+        app.session
+            .edit("paint", |doc, active| {
+                doc.layer_mut(active.unwrap()).unwrap().surface_mut().unwrap().fill_rect(photocraft_geom::Rect::new(24, 24, 32, 32), &[0.0, 1.0, 0.0, 1.0]);
+                Ok(())
+            })
+            .unwrap();
+        let middle = app.session.active().unwrap().active_layer.unwrap();
+        app.session.execute("layer.new.layer", json!({})).unwrap();
+        app.session
+            .edit("paint", |doc, active| {
+                doc.layer_mut(active.unwrap()).unwrap().surface_mut().unwrap().fill_rect(photocraft_geom::Rect::new(40, 40, 48, 48), &[0.0, 0.0, 1.0, 1.0]);
+                Ok(())
+            })
+            .unwrap();
+        let blue = app.session.active().unwrap().active_layer.unwrap();
+        app.session.execute("layer.select", json!({"layer": red.0, "mode": "replace"})).unwrap();
+        app.session.execute("layer.select", json!({"layer": blue.0, "mode": "add"})).unwrap();
+
+        begin(&mut app, &egui::Context::default()).unwrap();
+        let preview = app.transform_preview.as_ref().unwrap();
+        let multi = preview.multi.as_ref().unwrap();
+        assert_eq!(multi.targets, vec![red, blue], "targets follow document stack order");
+        assert_eq!(multi.items[0].above.as_ref().unwrap().ids, vec![middle], "the unselected layer between targets stays above the lower preview");
+        assert!(multi.items[1].above.as_ref().unwrap().ids.is_empty(), "the upper selected target is not baked into its own lower-stack overlay");
+        cancel(&mut app);
+    }
+
+    #[test]
+    fn multi_layer_transform_refuses_a_blend_layer_above_without_mutating_the_document() {
+        let mut app = app_with_square(64, photocraft_geom::Rect::new(8, 8, 16, 16));
+        let red = app.session.active().unwrap().active_layer.unwrap();
+        app.session.execute("layer.new.layer", json!({})).unwrap();
+        app.session
+            .edit("paint", |doc, active| {
+                doc.layer_mut(active.unwrap()).unwrap().surface_mut().unwrap().fill_rect(photocraft_geom::Rect::new(24, 24, 32, 32), &[0.0, 1.0, 0.0, 1.0]);
+                Ok(())
+            })
+            .unwrap();
+        let middle = app.session.active().unwrap().active_layer.unwrap();
+        app.session.execute("layer.new.layer", json!({})).unwrap();
+        app.session
+            .edit("paint", |doc, active| {
+                doc.layer_mut(active.unwrap()).unwrap().surface_mut().unwrap().fill_rect(photocraft_geom::Rect::new(40, 40, 48, 48), &[0.0, 0.0, 1.0, 1.0]);
+                Ok(())
+            })
+            .unwrap();
+        let blue = app.session.active().unwrap().active_layer.unwrap();
+        app.session
+            .edit("set test blend", |doc, _| {
+                doc.layer_mut(middle).unwrap().blend = photocraft_color::BlendMode::Multiply;
+                Ok(())
+            })
+            .unwrap();
+        app.session.execute("layer.select", json!({"layer": red.0, "mode": "replace"})).unwrap();
+        app.session.execute("layer.select", json!({"layer": blue.0, "mode": "add"})).unwrap();
+        let before = app.session.active().unwrap().history.past_len();
+
+        let error = begin(&mut app, &egui::Context::default()).unwrap_err();
+        assert!(error.contains("cannot preview"), "{error}");
+        assert!(app.ui.transform.is_none());
+        assert_eq!(app.session.active().unwrap().history.past_len(), before);
+        assert_eq!(app.session.active().unwrap().doc.layer(middle).unwrap().blend, photocraft_color::BlendMode::Multiply);
+    }
+
+    #[test]
+    fn multi_layer_transform_refuses_clipped_targets_without_mutating_the_document() {
+        let mut app = app_with_square(64, photocraft_geom::Rect::new(8, 8, 16, 16));
+        let base = app.session.active().unwrap().active_layer.unwrap();
+        app.session.execute("layer.new.layer", json!({})).unwrap();
+        let clipped = app.session.active().unwrap().active_layer.unwrap();
+        app.session
+            .edit("clip selected layer", |doc, _| {
+                doc.layer_mut(clipped).unwrap().clipped = true;
+                Ok(())
+            })
+            .unwrap();
+        app.session.execute("layer.select", json!({"layer": base.0, "mode": "replace"})).unwrap();
+        app.session.execute("layer.select", json!({"layer": clipped.0, "mode": "add"})).unwrap();
+        let before = app.session.active().unwrap().history.past_len();
+
+        let error = begin(&mut app, &egui::Context::default()).unwrap_err();
+        assert!(error.contains("clipped"), "{error}");
+        assert!(app.ui.transform.is_none());
+        assert!(app.transform_preview.is_none());
+        let st = app.session.active().unwrap();
+        assert_eq!(st.history.past_len(), before);
+        assert!(st.doc.layer(clipped).unwrap().clipped);
+        assert_eq!(st.selected_layers(), vec![base, clipped], "the rejected operation leaves selection unchanged");
+    }
+
     fn app_with_square(size: u32, fill: photocraft_geom::Rect) -> PhotocraftApp {
         let mut app = PhotocraftApp::new(photocraft_engine::Session::new(), crate::Services::default());
         app.session.execute("file.new", json!({"width": size, "height": size})).unwrap();
@@ -4322,7 +4881,8 @@ mod tests {
         let px = |name: &str| Layer::raster(name, photocraft_color::PixelFormat::RGBA8);
         let covers = |layers: &[Layer], id: LayerId| {
             let mut out = Vec::new();
-            covering(layers, id, &mut out);
+            let mut complete = true;
+            covering(layers, id, &[], &mut out, &mut complete);
             out
         };
         // In a group: the group's layers over it, then the ones over the group; never the layers
@@ -4335,7 +4895,8 @@ mod tests {
         assert_eq!(covers(&layers, c), [tp, inner], "a clipped layer: covered by what is over its clipping group");
 
         // Under the box, the covering layers leave the document; over it, they alone show.
-        let above = Above { ctx: egui::Context::default(), name: String::new(), max_side: 64, ids: vec![tp, inner], shown: None };
+        let above =
+            Above { ctx: egui::Context::default(), name: String::new(), max_side: 64, ids: vec![tp, inner], excluded: Vec::new(), complete: true, shown: None };
         let mut under = layers.clone();
         above.hide_in(&mut under);
         let vis = |ls: &[Layer]| [ls[0].visible, ls[1].visible, ls[2].visible];

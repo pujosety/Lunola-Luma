@@ -337,9 +337,9 @@ pub(crate) fn draw_box(painter: &egui::Painter, xf: &ViewXform, t: &TransformSes
     painter.add(egui::Shape::closed_line(pts.to_vec(), Stroke::new(1.0, tokens.accent)));
     let mids = [pts[0].lerp(pts[1], 0.5), pts[1].lerp(pts[2], 0.5), pts[2].lerp(pts[3], 0.5), pts[3].lerp(pts[0], 0.5)];
     for p in pts.iter().chain(mids.iter()) {
-        let r = egui::Rect::from_center_size(*p, vec2(7.0, 7.0));
+        let r = crate::transform_tool::handle_rect(*p);
         painter.rect_filled(r, 0.0, tokens.accent_text);
-        painter.rect_stroke(r, 0.0, Stroke::new(1.0, tokens.accent), egui::StrokeKind::Inside);
+        painter.rect_stroke(r, 0.0, Stroke::new(1.5, tokens.accent), egui::StrokeKind::Inside);
     }
     let c = xf.to_screen(t.pivot[0] as f32, t.pivot[1] as f32);
     painter.circle_stroke(c, 4.0, Stroke::new(2.0, tokens.shadow));

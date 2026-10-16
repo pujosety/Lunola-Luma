@@ -36,6 +36,12 @@ pub fn transform_bounds(doc: &Document, layer: &Layer) -> Rect {
     }
 }
 
+/// Normalize a layer selection for a joint transform: selecting a group and one of its descendants
+/// transforms the group once, and targets stay in document stack order.
+pub fn transform_targets(doc: &Document, ids: &[LayerId]) -> Vec<LayerId> {
+    crate::layer_multi_cmds::top_level(doc, ids)
+}
+
 /// A group moves all its descendants, so its frame must not clip raster children to the selection.
 fn whole_layer_bounds(layer: &Layer) -> Rect {
     let content = match &layer.content {
@@ -537,6 +543,7 @@ fn with_panel_target(s: &Session, p: &Value) -> Value {
     let mut p = if p.is_object() { p.clone() } else { json!({}) };
     if p.get("target").is_none()
         && p.get("layer").is_none()
+        && p.get("layers").is_none()
         && let (Some(m), Some(Value::Object(t))) = (p.as_object_mut(), crate::channel_cmds::targeted_channel(s))
     {
         m.extend(t);
@@ -545,7 +552,11 @@ fn with_panel_target(s: &Session, p: &Value) -> Value {
 }
 
 fn transform(s: &mut Session, p: &Value) -> Result<Value> {
-    let p = &with_panel_target(s, p);
+    let owned = with_panel_target(s, p);
+    if owned.get("layers").is_some() {
+        return transform_layers(s, &owned);
+    }
+    let p = &owned;
     let st = s.active().ok_or(EngineError::NoDocument)?;
     let id = crate::commands::explicit_layer(s, p)?.or(st.active_layer);
     let lone = lone_target(&st.doc, id, p)?;
@@ -571,6 +582,78 @@ fn transform(s: &mut Session, p: &Value) -> Result<Value> {
             [b.x0 as f64, b.y0 as f64, b.x1 as f64, b.y1 as f64]
         }
     };
+    let (h, affine, interp) = transform_geometry(p, rect)?;
+    let lone = lone.is_some();
+    let p = p.clone();
+    // A background job when started with `Session::start` (#1015): the warp of a large layer runs
+    // on a worker with progress, and can be cancelled.
+    crate::jobs::edit_job(
+        s,
+        "Free Transform",
+        move |doc, _, ctx| ctx.stage(0.0, 1.0, "Transforming", |ctl| transform_doc(doc, id, &p, lone, &h, affine, interp, ctl)),
+        move |()| json!({"rect": rect}),
+    )
+}
+
+/// A single transaction for all selected top-level layers. The same document-space transform is
+/// applied to every target, while the selection outline is transformed once after all layers.
+fn transform_layers(s: &mut Session, p: &Value) -> Result<Value> {
+    if p.get("layer").is_some() {
+        return Err(bad("pass either `layer` or `layers`, not both"));
+    }
+    if p.get("target").is_some() {
+        return Err(bad("multi-layer transforms cannot target a mask or channel"));
+    }
+    let values = p.get("layers").and_then(Value::as_array).ok_or_else(|| bad("`layers` must be an array of layer ids"))?;
+    if values.is_empty() {
+        return Err(bad("`layers` must not be empty"));
+    }
+    let st = s.active().ok_or(EngineError::NoDocument)?;
+    let doc = st.doc.clone();
+    let requested: Vec<LayerId> =
+        values.iter().map(|v| v.as_u64().map(LayerId).ok_or_else(|| bad("`layers` must contain unsigned layer ids"))).collect::<Result<_>>()?;
+    for id in &requested {
+        if doc.layer(*id).is_none() {
+            return Err(EngineError::NoLayer(*id));
+        }
+    }
+    let ids = crate::layer_multi_cmds::top_level(&doc, &requested);
+    if ids.iter().any(|id| doc.is_background(*id)) {
+        return Err(EngineError::Other("Background layers cannot be transformed with other selected layers".into()));
+    }
+    for id in &ids {
+        let layer = doc.layer(*id).ok_or(EngineError::NoLayer(*id))?;
+        if locked_for_transform(&doc, *id) {
+            return Err(EngineError::Other(format!("layer \"{}\" is locked", layer.name)));
+        }
+        if matches!(layer.content, LayerContent::Adjustment(_)) && layer.mask.is_none() {
+            return Err(EngineError::Other("Adjustment layers have nothing to transform".into()));
+        }
+    }
+    let bounds = ids.iter().filter_map(|id| doc.layer(*id).map(|l| transform_bounds(&doc, l))).fold(Rect::EMPTY, |a, b| a.union(&b));
+    if bounds.is_empty() {
+        return Err(EngineError::Other("nothing to transform".into()));
+    }
+    let rect = match p.get("rect").and_then(Value::as_array) {
+        Some(r) if r.len() == 4 => {
+            let v: Vec<f64> = r.iter().map(|x| x.as_f64().unwrap_or(0.0)).collect();
+            [v[0], v[1], v[2], v[3]]
+        }
+        _ => [bounds.x0 as f64, bounds.y0 as f64, bounds.x1 as f64, bounds.y1 as f64],
+    };
+    let (h, affine, interp) = transform_geometry(p, rect)?;
+    if affine.is_none() && ids.iter().any(|id| doc.layer(*id).is_some_and(|l| matches!(l.content, LayerContent::Text(_)))) {
+        return Err(EngineError::Other("Distort and Perspective need rasterized type (Type › Rasterize Type Layer)".into()));
+    }
+    crate::jobs::edit_job(
+        s,
+        "Free Transform",
+        move |doc, _, ctx| ctx.stage(0.0, 1.0, "Transforming", |ctl| transform_doc_layers(doc, &ids, &h, affine, interp, ctl)),
+        move |()| json!({"rect": rect}),
+    )
+}
+
+fn transform_geometry(p: &Value, rect: [f64; 4]) -> Result<(Homography, Option<Affine>, Interp)> {
     let h = if let Some(q) = quad_param(p) {
         Homography::rect_to_quad(rect, q).ok_or_else(|| bad("degenerate quad"))?
     } else if let Some(m) = p.get("matrix").and_then(Value::as_array) {
@@ -578,7 +661,6 @@ fn transform(s: &mut Session, p: &Value) -> Result<Value> {
         if v.len() != 6 {
             return Err(bad("matrix must be [a, b, c, d, e, f]"));
         }
-        // Affine [a b c d e f] maps (x, y) → (a·x + c·y + e, b·x + d·y + f).
         Homography([v[0], v[2], v[4], v[1], v[3], v[5], 0.0, 0.0, 1.0])
     } else if let Some(m) = relative_matrix(p, rect)? {
         m
@@ -592,16 +674,7 @@ fn transform(s: &mut Session, p: &Value) -> Result<Value> {
     let affine =
         (m[6].abs() < 1e-12 && m[7].abs() < 1e-12).then(|| Affine { m: [m[0] / m[8], m[3] / m[8], m[1] / m[8], m[4] / m[8], m[2] / m[8], m[5] / m[8]] });
     let interp = Interp::parse(p.get("interpolation").and_then(Value::as_str).unwrap_or("bicubic"));
-    let lone = lone.is_some();
-    let p = p.clone();
-    // A background job when started with `Session::start` (#1015): the warp of a large layer runs
-    // on a worker with progress, and can be cancelled.
-    crate::jobs::edit_job(
-        s,
-        "Free Transform",
-        move |doc, _, ctx| ctx.stage(0.0, 1.0, "Transforming", |ctl| transform_doc(doc, id, &p, lone, &h, affine, interp, ctl)),
-        move |()| json!({"rect": rect}),
-    )
+    Ok((h, affine, interp))
 }
 
 /// The edit of [`transform`]: the layer (or a lone mask or channel) and the selection outline.
@@ -658,13 +731,46 @@ fn transform_doc(
     Ok(())
 }
 
+/// Apply one homography to all targets atomically. Budgets and locks are preflighted for every
+/// target before any layer is changed; the Session job commits this cloned document only on success.
+fn transform_doc_layers(doc: &mut Document, ids: &[LayerId], h: &Homography, affine: Option<Affine>, interp: Interp, ctl: &Interrupt) -> Result<()> {
+    let sel = doc.selection.clone();
+    if let Some(sel) = sel.as_ref().filter(|_| !h.is_identity()) {
+        check_budget(sel.content_bounds(), h, "selection")?;
+    }
+    for id in ids {
+        let layer = doc.layer(*id).ok_or(EngineError::NoLayer(*id))?;
+        if locked_for_transform(doc, *id) {
+            return Err(EngineError::Other(format!("layer \"{}\" is locked", layer.name)));
+        }
+        check_layer_budget(sel.as_ref().filter(|_| !moves_whole(layer)), layer, h)?;
+    }
+    for id in ids {
+        let group = group_locks(doc, *id);
+        let layer = doc.layer_mut(*id).ok_or(EngineError::NoLayer(*id))?;
+        transform_layer_with(sel.as_ref(), group, layer, h, affine, interp, ctl)?;
+    }
+    if !h.is_identity() {
+        let snapshot = doc.clone();
+        for id in ids {
+            if let Some(layer) = doc.layer_mut(*id) {
+                refresh_text(&snapshot, layer);
+            }
+        }
+        if let Some(sel) = &doc.selection {
+            doc.selection = Some(warp_gray(sel, h, Interp::Bilinear)?).filter(|s| !s.content_bounds().is_empty());
+        }
+    }
+    Ok(())
+}
+
 pub fn specs() -> Vec<CommandSpec> {
     vec![CommandSpec {
         id: "edit.transform",
         label: "Free Transform",
         menu: &[],
         shortcut: None,
-        params: r##"{"layer":id?,"rect":[x0,y0,x1,y1]? (source frame; default = layer content ∩ selection),"quad":[[x,y]×4]? (where the frame's corners go, clockwise from top-left),"matrix":[a,b,c,d,e,f]? (affine alternative),"scaleX":%?,"scaleY":%?,"rotate":deg?,"dx":px?,"dy":px? (relative alternative: scale and rotate about the frame's centre, then move, as a Photoshop action records a Free Transform),"interpolation":"bicubic|bilinear|nearest"="bicubic","target":"pixels"|"mask"|"quickMask"|{"channel":i}=Channels panel target (an unlinked mask, an alpha channel or the Quick Mask transforms alone; a linked mask moves with its layer)}"##,
+        params: r##"{"layer":id? (single target),"layers":[id,...]? (selected top-level layers transformed together),"rect":[x0,y0,x1,y1]? (source frame; default = union of target content bounds within selection),"quad":[[x,y]×4]? (where the frame's corners go, clockwise from top-left),"matrix":[a,b,c,d,e,f]? (affine alternative),"scaleX":%?,"scaleY":%?,"rotate":deg?,"dx":px?,"dy":px? (relative alternative: scale and rotate about the frame's centre, then move, as a Photoshop action records a Free Transform),"interpolation":"bicubic|bilinear|nearest"="bicubic","target":"pixels"|"mask"|"quickMask"|{"channel":i}=Channels panel target (an unlinked mask, an alpha channel or the Quick Mask transforms alone; a linked mask moves with its layer)}"##,
         enabled: has_layer,
         journal: true,
         run: transform,
@@ -695,6 +801,71 @@ mod tests {
     fn active_bounds(s: &Session) -> Rect {
         let st = s.active().unwrap();
         st.doc.layer(st.active_layer.unwrap()).unwrap().surface().unwrap().content_bounds()
+    }
+
+    #[test]
+    fn selected_layers_transform_together_in_one_undo_step() {
+        let mut s = Session::new();
+        s.execute("file.new", json!({"width": 120, "height": 120})).unwrap();
+        s.execute("layer.new.layer", json!({})).unwrap();
+        let a = s.active().unwrap().active_layer.unwrap();
+        s.edit("paint A", |doc, _| {
+            doc.layer_mut(a).unwrap().surface_mut().unwrap().fill_rect(Rect::new(10, 10, 20, 20), &[1.0, 0.0, 0.0, 1.0]);
+            Ok(())
+        })
+        .unwrap();
+        s.execute("layer.new.layer", json!({})).unwrap();
+        let b = s.active().unwrap().active_layer.unwrap();
+        s.edit("paint B", |doc, _| {
+            doc.layer_mut(b).unwrap().surface_mut().unwrap().fill_rect(Rect::new(50, 50, 60, 60), &[0.0, 1.0, 0.0, 1.0]);
+            Ok(())
+        })
+        .unwrap();
+        s.execute("layer.select", json!({"layer": a.0})).unwrap();
+        s.execute("layer.select", json!({"layer": b.0, "mode": "add"})).unwrap();
+        let history_before = s.active().unwrap().history.past_len();
+
+        s.execute(
+            "edit.transform",
+            json!({"layers": [a.0, b.0], "rect": [10, 10, 60, 60], "quad": [[0, 0], [100, 0], [100, 100], [0, 100]], "interpolation": "nearest"}),
+        )
+        .unwrap();
+
+        let st = s.active().unwrap();
+        assert_eq!(st.doc.layer(a).unwrap().surface().unwrap().content_bounds(), Rect::new(0, 0, 20, 20));
+        assert_eq!(st.doc.layer(b).unwrap().surface().unwrap().content_bounds(), Rect::new(80, 80, 100, 100));
+        assert_eq!(st.history.past_len(), history_before + 1, "one multi-layer transform is one history step");
+        assert!(s.undo(), "one undo must undo the entire transform");
+        let st = s.active().unwrap();
+        assert_eq!(st.doc.layer(a).unwrap().surface().unwrap().content_bounds(), Rect::new(10, 10, 20, 20));
+        assert_eq!(st.doc.layer(b).unwrap().surface().unwrap().content_bounds(), Rect::new(50, 50, 60, 60));
+    }
+
+    #[test]
+    fn selected_layers_matrix_transform_together_in_one_undo_step() {
+        let mut s = session();
+        let bottom = s.active().unwrap().active_layer.unwrap();
+        s.execute("layer.new.layer", json!({})).unwrap();
+        let top = s.active().unwrap().active_layer.unwrap();
+        s.edit("paint second layer", |doc, _| {
+            doc.layer_mut(top).unwrap().surface_mut().unwrap().fill_rect(Rect::new(40, 10, 50, 20), &[0.0, 1.0, 0.0, 1.0]);
+            Ok(())
+        })
+        .unwrap();
+        s.execute("layer.select", json!({"layer": bottom.0})).unwrap();
+        s.execute("layer.select", json!({"layer": top.0, "mode": "add"})).unwrap();
+        let before = s.active().unwrap().history.past_len();
+
+        s.execute("edit.transform", json!({"layers": [bottom.0, top.0], "rect": [10, 10, 50, 20], "matrix": [2, 0, 0, 2, 0, 0], "interpolation": "nearest"}))
+            .unwrap();
+
+        let bounds = |s: &Session, id: LayerId| s.active().unwrap().doc.layer(id).unwrap().surface().unwrap().content_bounds();
+        assert_eq!(bounds(&s, bottom), Rect::new(20, 20, 60, 40));
+        assert_eq!(bounds(&s, top), Rect::new(80, 20, 100, 40));
+        assert_eq!(s.active().unwrap().history.past_len(), before + 1, "all selected layers share one history step");
+        assert!(s.undo());
+        assert_eq!(bounds(&s, bottom), Rect::new(10, 10, 30, 20));
+        assert_eq!(bounds(&s, top), Rect::new(40, 10, 50, 20));
     }
 
     // ---- Pixel budget (#3773). Tests run with a 2²⁰ px budget, so nothing here comes near the real one. ----

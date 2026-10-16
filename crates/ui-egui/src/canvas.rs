@@ -4485,18 +4485,24 @@ pub(crate) fn layer_edges_rect(app: &PhotocraftApp, idx: usize) -> Option<photoc
     Some(b.translate(dx, dy))
 }
 
-/// Move tool › Show Transform Controls: the active layer's transform bounds.
+/// Move tool › Show Transform Controls: the active layer's transform bounds, or one combined box
+/// around the normalized multi-selection.
 fn transform_controls_rect(app: &PhotocraftApp, xf: &ViewXform) -> Option<Rect> {
     if app.ui.tool != Tool::Move || !app.ui.tool_options.move_show_transform || app.ui.transform.is_some() || app.drag.is_some() {
         return None;
     }
     let st = app.session.active()?;
-    let l = st.active_layer.and_then(|id| st.doc.layer(id))?;
-    if crate::doc_props_ui::is_background(&st.doc, l) {
+    let selected = st.selected_layers();
+    let targets =
+        if selected.len() > 1 { photocraft_engine::transform_cmds::transform_targets(&st.doc, &selected) } else { st.active_layer.into_iter().collect() };
+    if targets.is_empty() || targets.iter().any(|id| st.doc.is_background(*id)) {
         return None;
     }
-    let b = photocraft_engine::transform_cmds::transform_bounds(&st.doc, l);
-    let (dx, dy) = crate::move_ui::floating_offset(app).unwrap_or((0, 0));
+    let b = targets
+        .iter()
+        .filter_map(|id| st.doc.layer(*id))
+        .fold(photocraft_geom::Rect::EMPTY, |bounds, layer| bounds.union(&photocraft_engine::transform_cmds::transform_bounds(&st.doc, layer)));
+    let (dx, dy) = if targets.len() == 1 { crate::move_ui::floating_offset(app).unwrap_or((0, 0)) } else { (0, 0) };
     let b = b.translate(dx, dy);
     if b.is_empty() {
         return None;
@@ -4569,11 +4575,11 @@ fn begin_transform_controls_at(app: &mut PhotocraftApp, ctx: &egui::Context, xf:
 fn draw_transform_controls(app: &mut PhotocraftApp, painter: &egui::Painter, xf: &ViewXform) {
     let Some(r) = transform_controls_rect(app, xf) else { return };
     let accent = crate::theme::Tokens::get(painter.ctx()).accent;
-    painter.rect_stroke(r, 0.0, Stroke::new(1.0, accent), egui::StrokeKind::Middle);
+    painter.rect_stroke(r, 0.0, Stroke::new(1.25, accent), egui::StrokeKind::Middle);
     for p in [r.left_top(), r.center_top(), r.right_top(), r.right_center(), r.right_bottom(), r.center_bottom(), r.left_bottom(), r.left_center()] {
-        let h = Rect::from_center_size(p, vec2(7.0, 7.0));
+        let h = crate::transform_tool::handle_rect(p);
         painter.rect_filled(h, 0.0, Color32::WHITE);
-        painter.rect_stroke(h, 0.0, Stroke::new(1.0, accent), egui::StrokeKind::Inside);
+        painter.rect_stroke(h, 0.0, Stroke::new(1.5, accent), egui::StrokeKind::Inside);
     }
 }
 
