@@ -84,9 +84,10 @@ codegen-units = 1
 
 # The browser build (apps/photocraft-web, `data-cargo-profile` in its index.html). Hosts cap the
 # size of a single file (Cloudflare Pages/Workers: 25 MiB), and the wasm is downloaded on every
-# visit, so this profile optimizes for size: fat LTO, opt-level "z" for PhotoCraft's own crates,
-# "s" for dependencies and for the crates that decode files, and 3 for pixel processing (filters
-# and compositing). Dependencies stay at "s": at "z" the whole wasm grows (by 0.4 MB, measured).
+# visit, so this profile optimizes for size: fat LTO, opt-level "z" for the web shell and selected
+# project crates, "s" for dependencies and for the crates that decode files, and 3 for pixel
+# processing (filters and compositing). Dependencies stay at "s": at "z" the whole wasm grows
+# (by 0.4 MB, measured).
 # panic stays the target default (wasm32-unknown-unknown aborts; AGENTS.md's `panic = "unwind"`
 # is for the native app shell). packaging/web/package.sh fails the build above 24 MiB.
 [profile.wasm-release]
@@ -98,11 +99,6 @@ strip = "debuginfo"
 
 [profile.wasm-release.package."*"]
 opt-level = "s"
-
-# The browser UI is a large control/orchestration crate, not a pixel-processing hot path; prefer
-# size optimization here while raster and compositing crates retain their speed-oriented settings.
-[profile.wasm-release.package.photocraft-ui-egui]
-opt-level = "z"
 
 # Decoding and rasterizing keep their speed.
 [profile.wasm-release.package.photocraft-codecs]
@@ -116,7 +112,7 @@ opt-level = "s"
 
 # Large crates off the per-frame and per-pixel paths: the document model, file parsers run once
 # per open/save, JSON (settings, presets, control channel), SVG parsing, and shader translation
-# (runs when a pipeline is created). "z" keeps the wasm well under the size gate.
+# (runs when a pipeline is created). These paths are not per-frame or per-pixel hot paths.
 [profile.wasm-release.package.photocraft-doc]
 opt-level = "z"
 [profile.wasm-release.package.photocraft-psd]
