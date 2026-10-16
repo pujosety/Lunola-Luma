@@ -5,7 +5,9 @@ use photocraft_codecs::{ChannelLayout, SampleType};
 
 /// 128 px source icon for the compact custom title bar.
 const ICON_PNG: &[u8] = include_bytes!("../../../assets/app-icon/hicolor/128x128/apps/ai.storyteller.photocraft.png");
+#[cfg(not(target_arch = "wasm32"))]
 const LOCKUP_PNG: &[u8] = include_bytes!("../../../brand/lunola-luma/assets/lunola-luma-lockup.png");
+const LOCKUP_ID: &str = "lunola-luma-official-lockup";
 
 /// The icon's pixels (one transparent pixel if it couldn't be decoded, which a test rules out).
 fn decode() -> egui::ColorImage {
@@ -53,13 +55,23 @@ fn decode_lockup(bytes: &[u8]) -> egui::ColorImage {
 }
 
 fn lockup_texture(ctx: &Context) -> TextureHandle {
-    let id = Id::new("lunola-luma-official-lockup");
+    let id = Id::new(LOCKUP_ID);
     if let Some(tex) = ctx.data(|d| d.get_temp::<TextureHandle>(id)) {
         return tex;
     }
-    let tex = ctx.load_texture("lunola-luma-official-lockup", decode_lockup(LOCKUP_PNG), TextureOptions::LINEAR);
+    #[cfg(not(target_arch = "wasm32"))]
+    let image = decode_lockup(LOCKUP_PNG);
+    #[cfg(target_arch = "wasm32")]
+    let image = egui::ColorImage::filled([1, 1], Color32::TRANSPARENT);
+    let tex = ctx.load_texture(LOCKUP_ID, image, TextureOptions::LINEAR);
     ctx.data_mut(|d| d.insert_temp(id, tex.clone()));
     tex
+}
+
+#[cfg(target_arch = "wasm32")]
+pub(crate) fn install_lockup(ctx: &Context, bytes: &[u8]) {
+    let tex = ctx.load_texture(LOCKUP_ID, decode_lockup(bytes), TextureOptions::LINEAR);
+    ctx.data_mut(|d| d.insert_temp(Id::new(LOCKUP_ID), tex));
 }
 
 /// The supplied Lunola Luma product lockup, rendered at its original aspect ratio.

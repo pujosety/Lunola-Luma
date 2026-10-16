@@ -7,7 +7,7 @@ AddType text/javascript .js
 </IfModule>
 
 <IfModule mod_headers.c>
-  <FilesMatch "\.(wasm|js)$">
+  <FilesMatch "\.(wasm|js|png)$">
     Header set Cache-Control "public, max-age=31536000, immutable"
   </FilesMatch>
   <FilesMatch "^index\.html$">

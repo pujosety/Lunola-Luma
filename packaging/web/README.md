@@ -8,6 +8,7 @@ static site in `photocraft-web-<version>/`:
 | `index.html` | The page. It loads everything through relative URLs. |
 | `photocraft-web-<hash>.js` | wasm-bindgen glue (generated, ES module) |
 | `photocraft-web-<hash>_bg.wasm` | The app: about 23 MiB raw, 10.5 MiB with gzip (see [Sizes](#sizes)) |
+| `lunola-luma-lockup-<sha256-prefix>.png` | Hashed product lockup for the start screen, fetched separately from the Wasm. |
 | `_headers`, `.htaccess` | Sample header rules for Netlify/Cloudflare Pages and Apache |
 | `fonts/` (optional) | Fonts loaded on demand, listed in `fonts/manifest.txt` (see [Fonts](#fonts)) |
 
@@ -94,7 +95,8 @@ egui's) and the translation catalogs compressed, unpacked on first use.
 All URLs in `index.html` are relative (`public_url = "./"` in `apps/photocraft-web/Trunk.toml`),
 so the site works at a domain root (`https://example.com/`), under a prefix
 (`https://example.com/tools/photocraft/`) and from a CDN bucket. The asset names carry a content
-hash, so they can be cached forever. Only `index.html` needs revalidation.
+hash, including the separately served product lockup, so they can be cached forever. Only
+`index.html` needs revalidation.
 
 ## Required server settings
 
@@ -104,8 +106,8 @@ hash, so they can be cached forever. Only `index.html` needs revalidation.
 - **Compression:** turn on gzip or Brotli for `.wasm`, `.js` and `.html`. That takes the
   download from about 19 MiB to about 8 MiB (gzip) or 5.6 MiB (Brotli). You can also
   precompress (`brotli -k *.wasm`) and let the server send `Content-Encoding: br`.
-- **Caching:** `Cache-Control: public, max-age=31536000, immutable` on the hashed `.wasm` and
-  `.js` files, and `no-cache` on `index.html`.
+- **Caching:** `Cache-Control: public, max-age=31536000, immutable` on the hashed `.wasm`, `.js`
+  and product-lockup `.png` files, and `no-cache` on `index.html`.
 - **HTTPS:** WebGPU (and the clipboard) only work in a secure context, which means `https://`
   or `http://localhost`. Over plain HTTP elsewhere, the app falls back to WebGL2.
 - **No special isolation headers:** Lunola Luma doesn't use `SharedArrayBuffer`, so it doesn't
