@@ -652,7 +652,7 @@
 	3-up Vertical	3 cửa sổ dọc
 	4-up	4 cửa sổ
 	6-up	6 cửa sổ
-	About PhotoCraft	Giới thiệu PhotoCraft
+	About Lunola Luma	Giới thiệu Lunola Luma
 	Actions	Thao tác
 	ArtCraft Website	Trang web ArtCraft
 	Brush Settings	Thiết lập cọ
@@ -1519,7 +1519,7 @@ cameraRaw	Shadows	Vùng tối
 	Subdivisions	Phân chia
 	System title bar	Thanh tiêu đề hệ thống
 	Text file	Tệp văn bản
-	These settings aren't available in PhotoCraft yet.	Các thiết lập này chưa có trong PhotoCraft.
+	These settings aren't available in Lunola Luma yet.	Các thiết lập này chưa có trong Lunola Luma.
 	Tiny	Rất nhỏ
 	Traditional (72.27 points/inch)	Truyền thống (72,27 point/inch)
 	Transparency & Gamut	Độ trong suốt & gam màu
@@ -1548,7 +1548,7 @@ cameraRaw	Shadows	Vùng tối
 	About	Giới thiệu
 	Contributors	Người đóng góp
 	Models	Mô hình
-	PhotoCraft — an open-source, native image editor written in Rust.	PhotoCraft — trình chỉnh sửa ảnh gốc mã nguồn mở viết bằng Rust.
+	Lunola Luma — an open-source, native image editor written in Rust.	Lunola Luma — trình chỉnh sửa ảnh gốc mã nguồn mở viết bằng Rust.
 	Version {version}	Phiên bản {version}
 	Unsaved changes	Thay đổi chưa lưu
 	Answer the unsaved-changes prompt first	Hãy trả lời hộp thoại thay đổi chưa lưu trước
@@ -1587,7 +1587,7 @@ cameraRaw	Shadows	Vùng tối
 	Native file drag-and-drop is not supported on Wayland yet. Use File › Open, or run PhotoCraft under XWayland with `WAYLAND_DISPLAY= photocraft`.	Kéo thả tệp gốc chưa được hỗ trợ trên Wayland. Dùng Tệp › Mở, hoặc chạy PhotoCraft dưới XWayland với `WAYLAND_DISPLAY= photocraft`.
 	Switched to CPU rendering	Đã chuyển sang kết xuất CPU
 	GPU acceleration could not continue. Your documents are unchanged.	Không thể tiếp tục tăng tốc GPU. Tài liệu của bạn không đổi.
-	PhotoCraft is using the CPU image compositor. The window may still use your graphics adapter.	PhotoCraft đang dùng bộ kết hợp ảnh CPU. Cửa sổ vẫn có thể dùng bộ điều hợp đồ họa của bạn.
+	Lunola Luma is using the CPU image compositor. The window may still use your graphics adapter.	Lunola Luma đang dùng bộ kết hợp ảnh CPU. Cửa sổ vẫn có thể dùng bộ điều hợp đồ họa của bạn.
 	Retry GPU	Thử lại GPU
 	Retry GPU requires a restart. Save your work first.	Thử lại GPU cần khởi động lại. Hãy lưu công việc trước.
 	Keep Using CPU	Tiếp tục dùng CPU
@@ -2122,7 +2122,7 @@ layers	Fill:	Độ tô:
 	A save to {name} is still running; try again when it finishes	Đang lưu {name}; thử lại khi hoàn tất
 	Adwaita Dark Theme	Chủ đề Adwaita tối
 	Adwaita Light Theme	Chủ đề Adwaita sáng
-	All shortcuts reset to PhotoCraft defaults.	Đã đặt lại mọi phím tắt về mặc định PhotoCraft.
+	All shortcuts reset to Lunola Luma defaults.	Đã đặt lại mọi phím tắt về mặc định của Lunola Luma.
 	Appearance Mode	Chế độ giao diện
 	Auto Hide	Tự động ẩn
 	Click to add a point, right-click to remove	Nhấp để thêm điểm, nhấp chuột phải để xóa
@@ -2205,7 +2205,7 @@ layers	Fill:	Độ tô:
 	Vector Mask from Current Path	Mặt nạ vector từ đường dẫn hiện tại
 	{label} is writing the file and can no longer be cancelled	{label} đang ghi tệp và không thể hủy nữa
 	{name} options	Tùy chọn {name}
-	{n} commands are not in PhotoCraft.	{n} lệnh không có trong PhotoCraft.
+	{n} commands are not in Lunola Luma.	{n} lệnh không có trong Lunola Luma.
 	{size} (was {old})	{size} (trước là {old})
 	{w} px x {h} px ({ppi} ppi)	{w} px x {h} px ({ppi} ppi)
 	…and {n} more	…và {n} nữa
@@ -2220,7 +2220,7 @@ layers	Fill:	Độ tô:
 	Corner Crop Marks	Dấu cắt góc
 	Default printer	Máy in mặc định
 	No Color Management	Không quản lý màu
-	PhotoCraft Manages Colors	PhotoCraft quản lý màu
+	Lunola Luma Manages Colors	Lunola Luma quản lý màu
 	Printer	Máy in
 	Printer Manages Colors	Máy in quản lý màu
 	Printer Setup	Thiết lập máy in
@@ -2365,7 +2365,7 @@ shape	Appearance	Diện mạo
 	Next Document	Tài liệu tiếp theo
 	Open EXR Parts…	Mở các phần EXR…
 	Pencil	Bút chì
-	PhotoCraft — Screen Color Picker	PhotoCraft — Bộ chọn màu màn hình
+	Lunola Luma — Screen Color Picker	Lunola Luma — Bộ chọn màu màn hình
 	Previous Document	Tài liệu trước
 	Refine	Tinh chỉnh
 	Remove from Recent	Xóa khỏi Gần đây

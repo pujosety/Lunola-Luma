@@ -24,6 +24,16 @@ if grep -Eq '(src|href)="/[^/]' "$SITE/index.html"; then
   exit 1
 fi
 
+# The browser fetches the lockup separately so its 550 KB PNG does not inflate the Wasm download.
+LOCKUP_SOURCE="$ROOT/brand/lunola-luma/assets/lunola-luma-lockup.png"
+LOCKUP_NAME="lunola-luma-lockup.png"
+LOCKUP_SERVED="$SITE/$LOCKUP_NAME"
+[ -f "$LOCKUP_SERVED" ] || { echo "error: $LOCKUP_SERVED missing; Trunk must copy the product lockup" >&2; exit 1; }
+cmp -s "$LOCKUP_SOURCE" "$LOCKUP_SERVED" || { echo "error: served lockup differs from $LOCKUP_SOURCE" >&2; exit 1; }
+for source in "$ROOT/apps/photocraft-web/index.html" "$ROOT/apps/photocraft-web/src/web.rs"; do
+  grep -Fq "$LOCKUP_NAME" "$source" || { echo "error: $source must fetch the served lockup $LOCKUP_NAME" >&2; exit 1; }
+done
+
 # Size gate (issue #198): Cloudflare Pages/Workers reject any single file over 25 MiB, and other
 # hosts and CDNs have similar caps. Fail well before that so a regression shows up here, not at
 # upload time. Override with PHOTOCRAFT_WASM_MAX_BYTES only to investigate.

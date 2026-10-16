@@ -757,7 +757,7 @@
 	Timeline	Zaman çizelgesi
 	Tool Presets	Araç Ön Ayarları
 	Tools	Araçlar
-	About PhotoCraft	PhotoCraft Hakkında
+	About Lunola Luma	Lunola Luma Hakkında
 	PhotoCraft Website	PhotoCraft Web Sitesi
 	PhotoCraft on GitHub	GitHub'da PhotoCraft
 	ArtCraft Website	ArtCraft Web Sitesi
@@ -812,7 +812,7 @@
 	All Caps	Tamamı Büyük Harf
 	All Slices	Tüm Dilimler
 	All User Slices	Tüm Kullanıcı Dilimleri
-	All shortcuts reset to PhotoCraft defaults.	Tüm kısayollar PhotoCraft varsayılanlarına sıfırlanır.
+	All shortcuts reset to Lunola Luma defaults.	Tüm kısayollar Lunola Luma varsayılanlarına sıfırlanır.
 	Alt	Alternatif
 	Always use pressure for opacity	Opaklık için her zaman baskıyı kullanın
 	Always use pressure for size	Her zaman boyuta göre baskı kullanın
@@ -1304,8 +1304,8 @@
 	Perspective Warp: draw planes along the image's perspective, then switch to Warp	Perspektif Çarpıtma: görüntünün perspektifi boyunca düzlemler çizin, ardından Çarpıtma'ya geçin
 	Photo Filter	Fotoğraf Filtresi
 	PhotoCraft	PhotoCraft
-	PhotoCraft Manages Colors	PhotoCraft Renkleri Yönetir
-	PhotoCraft — an open-source, native image editor written in Rust.	PhotoCraft — Rust'ta yazılmış açık kaynaklı, yerel bir resim düzenleyici.
+	Lunola Luma Manages Colors	Lunola Luma Renkleri Yönetir
+	Lunola Luma — an open-source, native image editor written in Rust.	Lunola Luma — Rust'ta yazılmış açık kaynaklı, yerel bir resim düzenleyici.
 	Pin Depth:	Pim Derinliği:
 	Pixel Length:	Piksel Uzunluğu:
 	Pixels/Centimeter	Piksel/Santimetre
@@ -1380,7 +1380,7 @@
 	Import Shortcuts…	Kısayolları İçe Aktar…
 	Load a keyboard shortcut set saved as .kys	.kys olarak kaydedilen bir klavye kısayolu kümesi yükleyin
 	Imported {n} shortcuts from {file}. Click OK to keep them.	{n} kısayolları {file} adresinden içe aktarıldı. Bunları saklamak için Tamam'ı tıklayın.
-	{n} commands are not in PhotoCraft.	{n} komutları PhotoCraft'ta değil.
+	{n} commands are not in Lunola Luma.	{n} komut Lunola Luma'da bulunmuyor.
 	Keyboard shortcuts imported	İçe aktarılan klavye kısayolları
 	Your keyboard shortcut set {set} is in use here: {n} shortcuts differ from the defaults. Edit › Keyboard Shortcuts shows them; Reset All to Defaults undoes this.	{set} klavye kısayol grubunuz burada kullanılıyor: {n} kısayolları varsayılanlardan farklı. Düzenle › Klavye Kısayolları bunları gösterir; Tümünü Varsayılanlara Sıfırla bu işlemi geri alır.
 	Import keyboard shortcuts?	Klavye kısayolları içe aktarılsın mı?
@@ -2042,7 +2042,7 @@
 	System Info	Sistem Bilgisi
 	More panels	Daha fazla panel
 	More documents	Daha fazla belge
-	These settings aren't available in PhotoCraft yet.	Bu ayarlar henüz PhotoCraft'ta mevcut değildir.
+	These settings aren't available in Lunola Luma yet.	Bu ayarlar henüz Lunola Luma'da mevcut değildir.
 	Graphics	Grafik
 	Reset GPU Backend	GPU Arka Uçunu Sıfırla
 	Applies at next launch.	Bir sonraki açılışta geçerlidir.
@@ -2242,7 +2242,7 @@
 	Automatic uses GPU acceleration when available and falls back to CPU rendering on errors.	Otomatik, mümkün olduğunda GPU hızlandırmayı kullanır ve hatalarda CPU oluşturmaya geri döner.
 	Switched to CPU rendering	CPU oluşturmaya geçildi
 	GPU acceleration could not continue. Your documents are unchanged.	GPU hızlandırması devam edemedi. Belgeleriniz değişmedi.
-	PhotoCraft is using the CPU image compositor. The window may still use your graphics adapter.	PhotoCraft, CPU görüntü düzenleyicisini kullanıyor. Pencere hala grafik bağdaştırıcınızı kullanıyor olabilir.
+	Lunola Luma is using the CPU image compositor. The window may still use your graphics adapter.	Lunola Luma, CPU görüntü düzenleyicisini kullanıyor. Pencere hala grafik bağdaştırıcınızı kullanıyor olabilir.
 	Retry GPU requires a restart. Save your work first.	GPU'yu yeniden dene, yeniden başlatma gerektirir. Öncelikle çalışmanızı kaydedin.
 	Keep Using CPU	CPU'yu Kullanmaya Devam Edin
 	Retry GPU	GPU'yu yeniden dene
@@ -3751,7 +3751,7 @@ cameraData	Lens	Lens
 	There is no crop size or ratio to save	Kaydedilecek kırpma boyutu veya oranı yok
 	Search settings…	Arama ayarları…
 	No matching settings	Eşleşen ayar yok
-	PhotoCraft — Screen Color Picker	PhotoCraft — Ekran Rengi Seçici
+	Lunola Luma — Screen Color Picker	Lunola Luma — Ekran Rengi Seçici
 	Loading fonts…	Yazı tipleri yükleniyor…
 	Onion Skin	Soğan Kabuğu
 	Marching Ants	Yürüyen Karıncalar

@@ -27,6 +27,7 @@ const CANVAS_ID: &str = "photocraft_canvas";
 /// Fonts the host serves next to the page (`photocraft_ui_egui::served_fonts`): craft-fonts' manifest
 /// format, each file relative to the site root. No manifest (a 404) means no served fonts.
 const FONTS_MANIFEST: &str = "fonts/manifest.txt";
+const PRODUCT_LOCKUP: &str = "lunola-luma-lockup.png";
 
 /// The served fonts: the manifest once read, and what the network has delivered.
 #[derive(Default)]
@@ -78,6 +79,7 @@ pub fn start() {
                 options,
                 Box::new(move |cc| {
                     PhotocraftApp::setup_context(&cc.egui_ctx, ThemeKind::Pro);
+                    load_product_lockup(cc.egui_ctx.clone());
                     let inbox: Inbox = Arc::default();
                     let served: Served = Arc::default();
                     load_font_manifest(served.clone(), cc.egui_ctx.clone());
@@ -194,6 +196,19 @@ fn load_font_manifest(served: Served, ctx: egui::Context) {
 /// The browser's preferred languages (`navigator.languages`, e.g. `["ar-EG", "en"]`).
 fn browser_languages() -> Vec<String> {
     web_sys::window().map(|w| w.navigator().languages().iter().filter_map(|l| l.as_string()).collect()).unwrap_or_default()
+}
+
+/// The lockup is a static web asset rather than part of the Wasm download.
+fn load_product_lockup(ctx: egui::Context) {
+    wasm_bindgen_futures::spawn_local(async move {
+        match fetch_bytes(PRODUCT_LOCKUP, None).await {
+            Ok(bytes) => {
+                photocraft_ui_egui::install_product_lockup(&ctx, &bytes);
+                ctx.request_repaint();
+            }
+            Err(e) => log::warn!("couldn't fetch served product lockup {PRODUCT_LOCKUP}: {e}"),
+        }
+    });
 }
 
 /// GET `url` (relative to the page) and read the whole body. With `integrity` (a Subresource

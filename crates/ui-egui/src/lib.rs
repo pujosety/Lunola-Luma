@@ -29,6 +29,11 @@ mod blend_keys;
 pub(crate) mod blend_preview;
 pub mod blur_pins;
 mod brand;
+/// Install the web-served Lunola Luma lockup texture into the browser's egui context.
+#[cfg(target_arch = "wasm32")]
+pub fn install_product_lockup(ctx: &egui::Context, png: &[u8]) {
+    brand::install_lockup(ctx, png);
+}
 pub(crate) mod brush_cursor;
 pub mod brush_panel;
 pub mod brush_picker;
