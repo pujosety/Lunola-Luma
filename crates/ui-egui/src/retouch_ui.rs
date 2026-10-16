@@ -999,8 +999,8 @@ mod tests {
         assert!(crate::cam_transform::active(&app), "{}", app.ui.status);
         assert!(blue(&app, 22, 30) && !blue(&app, 72, 30), "the document waits for the commit");
         assert_eq!(app.session.active().unwrap().history.past_len(), steps);
-        // Dragging outside the box turns it 90° about its centre (72, 30).
-        drag(&mut app, &[[98.0, 55.0], [60.0, 58.0], [47.0, 56.0]]);
+        // Start beyond the enlarged corner-handle hit radius; this drag turns it 90° about (72, 30).
+        drag(&mut app, &[[102.0, 60.0], [60.0, 58.0], [42.0, 60.0]]);
         let place = crate::cam_transform::placement(app.ui.cam_transform.as_ref().unwrap()).unwrap();
         assert_eq!((place.offset, place.scale), ([50, 0], [100.0, 100.0]));
         assert!((place.rotate - 90.0).abs() < 1e-3, "{place:?}");
