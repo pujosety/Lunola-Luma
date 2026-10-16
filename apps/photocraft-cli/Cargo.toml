@@ -34,4 +34,3 @@ tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 [build-dependencies]
 # Icon + VERSIONINFO for photocraft-cli.exe; build.rs only uses it when targeting Windows.
 winresource = "0.1"
-
