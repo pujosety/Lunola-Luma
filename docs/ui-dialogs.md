@@ -25,7 +25,7 @@ marker keys on `fields` (`owns()` or `contains_key("__export")`, etc.); **first 
 `dialogs::show` wins**, so new markers must not collide with an earlier arm. `show`, `confirm`, and
 `cancel` share the same dispatch table—wire all three when adding a dialog.
 
-**Field contract.** `Dialog.fields` is a JSON map: command parameters automation clients read and write, plus
+**Field contract.** `Dialog.fields` is a JSON map: command parameters agents read and write, plus
 private keys prefixed with `__`. Never use `__` for user-facing or engine params.
 
 ### `DialogKind` (top-level stack)
@@ -33,7 +33,7 @@ private keys prefixed with `__`. Never use `__` for user-facing or engine params
 | Kind | Body module | Typical entry |
 |---|---|---|
 | `NewDocument` | `new_doc_ui.rs` | File › New, `file.new` with no size params |
-| `About` | `dialogs.rs` (About / Contributors / Models tabs) | Help › About Lunola Luma; `systemInfo: true` → System Info variant |
+| `About` | `dialogs.rs` (About / Contributors / Models tabs) | Help › About PhotoCraft; `systemInfo: true` → System Info variant |
 | `Command` | Routed—see below | Most menu commands with parameters |
 | `LayerStyle` | `layer_style.rs` | Layer › Layer Style… |
 | `Error` | inline in `dialogs.rs` | `message` field only (e.g. move lock, locked transform) |
@@ -50,7 +50,7 @@ Dispatch order matches `dialogs::show` in `dialogs.rs` (check earlier rows befor
 | `__stroke` | `stroke_ui.rs` | Edit › Stroke… |
 | `__createShape` | `shape_dialog.rs` | Click-with-shape-tool creation (rectangle, ellipse, …) |
 | `__deleteLayer` | `delete_layer_prompt.rs` | Layers panel trash confirmation |
-| `__newLayer` | `new_layer_ui.rs` | Layer › New › Layer… (⇧⌘N) |
+| `__newLayer` | `new_layer_ui.rs` | Layer › New › Layer… (⇧⌘N; ⌥⇧⌘N makes the layer without it) |
 | `__rasterize` | `rasterize_prompt.rs` | Rasterize-before-paint prompt |
 | `__resetAllTools` | `tool_reset.rs` | Reset All Tools confirmation |
 | `__cropPresetNew` / `__cropPresetDelete` | `crop_presets.rs` | New / delete crop preset |
@@ -140,7 +140,7 @@ Same hub entry as standalone pickers; `color_picker_ui::confirm` branches on ext
 1. **Thin UI, engine command on OK.** Run `app.run` or a dedicated `*_ui::confirm`; one history step unless the command itself batches.
 2. **Register in the hub.** Add `owns()` (or a stable marker), `body()`, `open()` if needed, and matching arms in `dialogs::show`, `confirm`, and `cancel` (and `open_command_dialog` when menu-driven).
 3. **Extend existing paths first.** Filters → `filter_dialog`; adjustments → `adjust_dialog`; simple param grids → `__form`; avoid a second modal stack unless product needs Camera Raw–level UX.
-4. **`fields` is the automation contract.** Anything automation clients must drive lives in named fields, not only in local egui state.
+4. **`fields` is the automation contract.** Anything agents must drive lives in named fields, not only in local egui state.
 5. **Remember last-used values** after successful OK where Photoshop does (`filter_dialog::remember`, prefs `dialogs["…"]`, module-specific helpers).
 
 ### Chrome and layout

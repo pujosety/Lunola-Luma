@@ -1,10 +1,12 @@
 # Lunola Luma Stability Audit
 
-**Audit date:** 2026-10-15  
-**Repository:** `pujosety/Lunola-Luma`  
-**Work branch:** `fix/luma-stability-overhaul`  
-**Base:** `67f3154ff3fc44d6c961f4eefbfb0285a8a0f086` (`v0.8.3`)  
+- **Audit date:** 2026-10-15
+- **Repository:** `pujosety/Lunola-Luma`
+- **Work branch:** `fix/luma-stability-overhaul`
+- **Base:** `67f3154ff3fc44d6c961f4eefbfb0285a8a0f086` (`v0.8.3`)
 **Audited HEAD:** `57774eb93c53c6512b6ba5c23a008ee1a0540448`
+
+**Historical scope:** This report describes the `fix/luma-stability-overhaul` v0.8.3 snapshot and pre-merge WIP evidence. It is not post-merge verification of the v0.9.0 integration; the v0.9 port still needs CI and UI validation.
 
 ## 1. Executive summary
 
@@ -12,9 +14,9 @@ The audit confirmed two important architectural/platform gaps and fixed three in
 
 1. **BUG-002, empty-canvas deselection:** a Move Tool zero-motion release previously ended the marquee without clearing the old layer selection. A regression test failed before the fix and passed after it. The fix preserves Shift-click selection semantics. Commit `162a63eddfabc4c21e0fa6b20f215510d38c981b`.
 2. **BUG-024, Wayland clipboard non-PNG images:** the app previously relied on arboard's image getter, which requests PNG and returns no image when a Wayland source offers only another raster MIME type. Ported the relevant change from merged upstream PR #4752: bounded Wayland image reads, `image/*` MIME filtering, decoding through existing codecs, and tests for BMP/JPEG, malformed offers, and TGA MIME validation. Commit `1219b307c5749049ec9b0527383af8dc832e901f`.
-3. **BUG-055, maximized window overlapping top/side taskbars:** the custom-frame correction only shortened the bottom edge. Ported merged upstream PR #5237's work-area rectangle correction and regression cases for all four edges. Commit `57774eb93c53c6512b6ba5c23a008ee1a0540448`.
+3. **BUG-055, maximized window overlapping top/side taskbars:** the earlier custom-frame port only corrected the bottom taskbar. The current v0.9 WIP extends the geometry correction to all four work-area edges; its new regression tests have not yet run on the integrated tree. The old 109/109 desktop-suite result does not verify this change. Baseline commit `57774eb93c53c6512b6ba5c23a008ee1a0540448`.
 
-**Confirmed gaps:** Free Transform controls/session/engine commit remain single-layer, despite multi-layer selection and Move translation support. Native Wayland file-drop events are not delivered by the repository's winit 0.30.13 stack; switching winit alone would be an incompatible eframe/egui-winit override. Existing XWayland fallback is available, but native Wayland DnD remains blocked pending a compatible upstream integration.
+**Confirmed gaps:** Free Transform has an uncommitted local multi-layer implementation: the Move controls use normalized selection bounds, preview targets preserve stack order for supported plain layers, and commit sends all targets through one engine transaction. Focused WIP tests passed on the pre-merge v0.8.3 branch, but have not been rerun after the upstream v0.9 integration. PR CI and native UI validation are pending. Native Wayland file-drop events remain unavailable in the repository's winit 0.30.13 stack; switching winit alone would be an incompatible eframe/egui-winit override. Existing XWayland fallback is available, but native Wayland DnD remains blocked pending a compatible upstream integration.
 
 This is an evidence report, not a claim that every native interaction has been reproduced. Most BUG-IDs below have source and checked-in-test evidence only; those tests are explicitly not claimed as run unless listed in §4. Native Linux/Wayland, macOS, real Windows multi-monitor taskbar, external Photoshop round-trip, and requested performance targets remain unverified.
 
@@ -24,11 +26,11 @@ Status names follow the master prompt. **Already Fixed** means the code/test cov
 
 | ID | Description | Severity | Reproducible / evidence | Fix status | Tests / evidence and limits | Commit / upstream |
 |---|---|---:|---|---|---|---|
-| BUG-001 | Shift multi-selection leaves transform controls on one layer | P0 | **Source-confirmed partial gap:** Move controls read `active_layer`; selection can contain multiple layers. | Confirmed | `canvas.rs:4279-4295`; Shift multi-select test only verifies layer selection/translation in `move_box.rs:121-125`. | No fix commit; see BUG-004. |
+| BUG-001 | Shift multi-selection leaves transform controls on one layer | P0 | **Prior gap now addressed locally:** controls use combined bounds for normalized multi-selection. | Implemented locally; uncommitted | `canvas.rs` computes normalized target union; `transform_tool::tests::selected_layers_share_one_box_and_commit_as_one_undo_step` verifies combined bounds. Native canvas interaction still needs manual try. | Local WIP; not pushed. |
 | BUG-002 | Empty-canvas click does not deselect | P0 | **Reproduced RED → GREEN.** Pre-fix test left selected IDs; post-fix clears selection and active layer. | Fixed & Tested | `move_box.rs:53-68,148-179`; `move_box::tests` 3/3 and related `move_` tests 84/84 passed. Plain click clears; Shift-click preserves. | `162a63eddfabc4c21e0fa6b20f215510d38c981b` |
 | BUG-003 | Transform bounds stale after edits, history or document switch | P0–P1 | Not independently reproduced; current controls recompute bounds from the active layer each frame. | Blocked | `canvas.rs:4280-4295`; the full requested move/resize/rotate/duplicate/delete/group/undo/redo/document-switch matrix was not executed. | — |
-| BUG-004 | Multi-layer scale/rotate/combined bounds/one-step undo | P0 | **Source-confirmed gap:** transform session stores one `layer`; engine transform resolves and mutates one layer ID. | Confirmed | `state.rs:883-919`; `transform_cmds.rs:547-555,607-658`; preview helper takes one layer ID in `transform_tool.rs:753-790`. Multi-layer Move translation is separate (`layer_multi_cmds.rs:334-338`). | No fix commit. A safe fix needs target normalization, aggregate bounds, stack-order-correct preview, validation/resource budget and one history transaction. |
-| BUG-005 | Transform handles at 25/50/100/200% and high DPI | P1 | Not reproduced across the requested zoom/DPI matrix. | Blocked | Handles use screen-space `HANDLE_PX` (`transform_tool.rs:112-119`); no native multi-DPI hit-area run. | — |
+| BUG-004 | Multi-layer scale/rotate/combined bounds/one-step undo | P0 | **Pre-merge WIP implementation and focused tests passed:** normalized multi-target quad transform, per-layer stack-order previews, one-step engine transaction. Complex blend/clipping overlays are explicitly refused until preview is reliable. | Implemented locally; v0.9 CI/manual validation pending | `transform_tool` tests verify union bounds, both layers changing in one undo step, selection changes, intervening-stack preservation and Multiply refusal; `transform_cmds` selected-layer tests passed 2/2 on the pre-merge branch and have not been rerun on v0.9. | Local WIP; not pushed. |
+| BUG-005 | Transform handles at 25/50/100/200% and high DPI | P1 | Visible handles and hit targets are larger and use screen-space dimensions. Native multi-DPI matrix is still untested. | Improved locally; v0.9 CI/manual verification pending | `HANDLE_SIZE_PX` is 11 pt and hit radius 14 pt; the zoom-scaling test passed on the pre-merge WIP branch and has not been rerun after the v0.9 integration. | Local WIP; not pushed. |
 | BUG-006 | Blurry Transform preview | P1 | Upstream issue #91 is closed; full-resolution preview path and regression are present. | Already Fixed | `transform_tool.rs:749-792,4162-4172`; `transform_tex.rs:139-196`. Oversized content still downsamples to device texture limits. Test not rerun here. | Upstream PR #183, merge `f857b4a31f1dfd9768d6508e66274df60d488653` |
 | BUG-007 | Enter/Escape/undo/redo transform behavior | P1 | No new failing report reproduced in this audit. | Blocked | Transform tool documents Enter commit/Escape cancel (`transform_tool.rs:1-8`); full native keyboard/focus/undo matrix not run. | — |
 | BUG-008 | Modifier consistency (Shift, Alt/Option, snapping while dragging) | P1 | Existing modifier paths are present; no new defect reproduced. | Blocked | Transform gesture semantics in `transform_tool.rs:4-8`; modifier matrix not rerun on a native window. | — |
@@ -68,7 +70,7 @@ Status names follow the master prompt. **Already Fixed** means the code/test cov
 | BUG-042 | Workspace panel positions/visibility after restart | P1 | Workspace state persists, but exact dock geometry/visibility after a fresh process restart is not established by the inspected test. | Blocked | Workspace switch test `panel_docking_tests.rs:99-113`; preference round-trip `prefs_ui.rs:2772-2791`; JSON name check `workspace_ui.rs:604-610`. | — |
 | BUG-043 | Visible preferences that do nothing | P1 | A guard checks preference consumption/hiding; a complete manual audit of every visible control was not performed. | Blocked | `engine/tests/prefs_usage.rs:92-151`; no specific dead control reproduced in this audit. | — |
 | BUG-044 | Linux GNOME/KDE/fractional HiDPI and native resize/input | P1 | UI scale and physical-pixel geometry tests exist; compositor/hardware behavior not tested. | Blocked | `prefs_ui.rs:2500-2547`; `canvas.rs:7136-7152`. No GNOME/KDE/Wayland session available. | — |
-| BUG-045 | Move Tool resize controls (#4005) | P1 | Partial support is source-confirmed: optional single-active-layer transform controls exist, but issue #4005 remains open. | Confirmed | Option defaults off in `state.rs:810-814`; handles derive from `active_layer` in `canvas.rs:4279-4347`; one-layer session/commit in `state.rs:883-919` and `transform_cmds.rs:547-555,640-658`. | No upstream fix PR verified; multi-layer controls not implemented. |
+| BUG-045 | Move Tool resize controls (#4005) | P1 | The Move controls now use the normalized selection union with larger screen-space handles. | Implemented locally; v0.9 CI and native try pending | `canvas.rs` computes combined bounds; 11 pt visual handles and 14 pt hit radius were tested for zoom scaling on the pre-merge WIP branch; v0.9 rerun is pending. | Local WIP; not pushed. |
 | BUG-046 | Atomic save can damage existing files on failure | P0 | Same-directory temp+rename strategy and write/rename failure tests are present. | Already Fixed | `engine/src/file_cmds.rs:89-97`; `format/src/atomic.rs:173-205`; failure injection `format/src/atomic/tests.rs:119-177`. Separate durability caveat: directory sync result after publication is ignored at `atomic.rs:202-205`; no routine data loss inferred. | Upstream #203 closed by PR #230 (`82270711`); follow-up #4968/#5420 remains open. |
 | BUG-047 | Preferences/recent files lost after restart | P1 | Recents persist to preferences; persistence tests and unused-preference guard are present. | Already Fixed | `crates/ui-egui/src/lib.rs:1117-1158`; test `canvas.rs:6221-6226`; `prefs_usage.rs:92-151`. | Upstream #204 closed by PR #245 (`34de1a5`). |
 | BUG-048 | Opening artboard PSD crashes | P0 | Upstream investigation attributes sample failure to GPU OOM/device loss; CPU fallback and preservation test exist. | Already Fixed | `canvas.rs:1445-1456,1480-1494`; `tests/gpu_device_loss.rs:129-147`. GPU test may skip without adapter; no native sample replay. | Upstream #332 closed; fixes referenced in #187/#252. |
@@ -78,7 +80,7 @@ Status names follow the master prompt. **Already Fixed** means the code/test cov
 | BUG-052 | Select → Color Range fails on Linux | P1 | No source-level gap found; dialog open/preview/apply and CPU/no-GPU tests are present. | Already Fixed | `menus.rs:464-465`; `dialogs.rs:564-573`; `color_range_ui.rs:1256-1300`. No native Linux/XWayland run. | Upstream #145 closed; dialog work #80 and no-GPU coverage #168. |
 | BUG-053 | Character panel hides Properties | P2 | Character/Paragraph panels share a group; Properties-retention tests exist. | Already Fixed | `dock.rs:101-110`; `dock_tests.rs:767-805`; not checked in a native window. | Upstream #150 closed via #181 (`b9809ca`). |
 | BUG-054 | Document tab overflow hides open documents | P1 | Overflow menu/tab elision and active-tab tests exist. | Already Fixed | `canvas.rs:1917-2017,2249-2330`; `canvas/tabs_tests.rs:38-88`. | Upstream #1276 closed via #1293/#1367 (`c84ec1b`). |
-| BUG-055 | Maximized custom frame corrupts taskbar / top taskbar overlap | P1 | Old code only trimmed height/bottom. Port now corrects all four work-area edges. Geometry test suite and full app suite pass. | Fixed & Tested | `apps/photocraft/src/window_frame.rs:88-154,168-222`; window-frame tests 5/5 and desktop binary tests 109/109 passed. Actual ExplorerPatcher/stock Windows multi-monitor GUI not tested. | Upstream PR #5237 merged (`c73bb0ed`); local `57774eb93c53c6512b6ba5c23a008ee1a0540448` |
+| BUG-055 | Maximized custom frame overlaps non-bottom taskbars | P1 | The earlier `57774` port trimmed the bottom work area. The current v0.9 WIP uses a four-edge rectangle correction; its tests have not run on this integrated tree. | WIP; v0.9 unverified | New `clamped_rect` tests cover bottom/top/left/right, negative monitor origins, border sizes and dragged/snapped windows. The earlier 109/109 desktop suite predates this enhancement and is not evidence for the new code; actual Windows multi-monitor GUI remains untested. | Upstream PR #5237 baseline (`c73bb0ed`); local all-edge WIP. |
 
 ## 3. Other required phases and upstream/security findings
 
@@ -95,7 +97,7 @@ Status names follow the master prompt. **Already Fixed** means the code/test cov
 |---|---|---|
 | #91 | Closed; PR #183 merged. | Full-resolution preview path is present. |
 | #128 | Still open; PR #226 and #893 improve device-loss/live-preview/effect-overhang paths. | No current ≤16 ms measurement; not declared resolved. |
-| #4005 | Open; no linked fix found. | Single active-layer handles are optional; multi-layer transform controls absent. |
+| #4005 | Open; no linked fix found. | Local implementation adds combined multi-layer controls and larger handles; PR/CI and manual desktop validation pending. |
 | #203 | Closed by atomic-save PR #230. | Temp+rename fix present; post-publication directory-sync result remains a durability caveat. |
 | #204 | Closed by preferences/recents PR #245. | Recents/prefs persistence present. |
 | #332 | Closed; comments identify large-document GPU OOM/device loss rather than artboards themselves. | CPU fallback test present. |
@@ -151,9 +153,15 @@ At base commit `67f3154ff3fc44d6c961f4eefbfb0285a8a0f086`, `cargo fmt --all -- -
 2. `1219b307c5749049ec9b0527383af8dc832e901f` — Linux-only `wl-clipboard-rs` 0.9.4 fallback for clipboard image MIME offers arboard cannot read as PNG; MIME filtering, image codec decode, TGA type check, and bounded reads.
 3. `57774eb93c53c6512b6ba5c23a008ee1a0540448` — correct custom maximized window frame against all four work-area edges, with idempotence and dragged/snapped-window guards.
 
+### Verified local draft (not yet committed or pushed)
+
+- Multi-layer Free Transform uses normalized selected targets, combined content bounds and a single engine transform/undo step. The preview draws targets in stack order, excludes other targets from per-layer overlays, caps aggregate preview allocation, and refuses non-Normal/blended/clipped arrangements it cannot reproduce faithfully.
+- Selection changes end the current transform snapshot. Move-tool controls use the same combined bounds. Visible handles are 11 pt; hit targets use a 14 pt screen-space radius.
+- Post-preview-cap focused UI regressions, selected-layer engine tests, strict UI Clippy (`-D warnings`) and formatting pass. Desktop build, CI, and manual UI interaction are still pending.
+
 ### Remaining technical debt / next steps
 
-- Design and test aggregate multi-layer Free Transform as an end-to-end transaction before implementation. Do not patch only the visible box: preview ordering, groups/linked layers/masks, locks, resource budget, and one-step undo must agree.
+- Build and manually try the local desktop app, then finish PR/CI verification for multi-layer Free Transform. Complex preview cases remain explicitly unsupported until they can be shown correctly.
 - Integrate native Wayland DnD only with a compatible eframe/egui-winit/winit update or upstream integration. Keep XWayland as a documented fallback; do not force an incompatible dependency override.
 - Run Linux CI/native clipboard integration and platform GUI tests for Wayland, X11, Windows taskbars and macOS before declaring cross-platform completion.
 - Measure BUG-011/037 against the actual performance target on a comparable layered document; keep the current budget honest.

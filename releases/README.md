@@ -2,7 +2,7 @@
 
 ## Status
 
-The public **Lunola Luma v0.8.2** prerelease is live at [GitHub Releases](https://github.com/pujosety/Lunola-Luma/releases/tag/v0.8.2), tagged at main commit `9da31de69a84f160f7f4634c4929387c5e8cf0d6`. It has 15 uploaded assets: 14 package files and `SHA256SUMS.txt`; every package checksum matches GitHub's reported SHA-256 digest. It includes unsigned Windows x64 MSI/portable ZIP, Linux x86_64/aarch64 packages, and Flatpak x86_64/aarch64. It omits macOS, Linux riscv64, WebAssembly, Windows x86/ARM64, and FreeBSD. The CI/test caveats are recorded in [`0.8.2.md`](0.8.2.md). The earlier [v0.7.0 release](https://github.com/pujosety/Lunola-Luma/releases/tag/v0.7.0) remains available.
+The published **Lunola Luma v0.8.3 — Partial Preview** is live at [GitHub Releases](https://github.com/pujosety/Lunola-Luma/releases/tag/v0.8.3), tagged at commit `67f3154ff3fc44d6c961f4eefbfb0285a8a0f086`. It has 24 assets: 23 package files and `SHA256SUMS.txt`. Downloads cover Windows x86/x64/ARM64, Linux x86_64/aarch64/riscv64, FreeBSD x86_64, Flatpak x86_64/aarch64, and WebAssembly; macOS is unavailable. Windows installers/executables are unsigned, and Photoshop open/save was not manually tested for the PSD fix. See [`0.8.3.md`](0.8.3.md) for release notes and caveats. The earlier [v0.8.2 release](https://github.com/pujosety/Lunola-Luma/releases/tag/v0.8.2) and [v0.7.0 release](https://github.com/pujosety/Lunola-Luma/releases/tag/v0.7.0) remain available; their notes are [`0.8.2.md`](0.8.2.md) and [`0.7.0.md`](0.7.0.md).
 
 Only artifacts built from the Lunola Luma candidate and verified for the stated platform may be attached. Do not relabel unrelated downloads as Lunola Luma builds.
 

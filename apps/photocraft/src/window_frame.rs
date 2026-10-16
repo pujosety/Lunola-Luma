@@ -85,9 +85,9 @@ mod platform {
         );
     }
 
-    /// How far a parked maximize reaches past a monitor/work-area edge: the resize border (about
-    /// 8 pt at 100 %, more with DPI). Past that, its rect is not parked but being dragged or
-    /// snapped, and is left alone.
+    /// How far a parked maximize reaches past its monitor on the left, top and right: the resize
+    /// border (about 8 pt at 100 %, more with DPI). Past that, a maximized window's rect is not
+    /// parked but being dragged or snapped, and is left alone.
     const FRAME: i32 = 32;
 
     /// Keep a parked maximize inside all four work-area edges, including a top taskbar.
@@ -107,8 +107,6 @@ mod platform {
         let (Some(width), Some(height)) = (right.checked_sub(left), bottom.checked_sub(top)) else {
             return;
         };
-        // Moving the outer frame while winit pins the client rect to the work area must
-        // not copy the old frame's pixels into the custom title bar.
         let _ = hwnd.SetWindowPos(
             HwndPlace::None,
             POINT { x: left, y: top },
@@ -118,7 +116,7 @@ mod platform {
         let _ = hwnd.InvalidateRect(None, false);
     }
 
-    /// Return the corrected outer rect in desktop coordinates, preserving the resize border.
+    /// Return a corrected outer rect in desktop coordinates, preserving the resize border.
     /// Each edge must be parked just outside either the monitor or work-area edge. Accepting
     /// both makes the guard idempotent and handles Windows already correcting some edges.
     /// Dragged/snapped windows are left alone; no monitor-origin or DPI assumptions are needed.
@@ -174,7 +172,6 @@ mod platform {
             assert!(!bare.has(co::WS::BORDER), "border gone");
             assert!(bare.has(co::WS::THICKFRAME), "edge resizing kept");
             assert!(bare.has(co::WS::MAXIMIZEBOX) && bare.has(co::WS::SYSMENU), "window buttons kept");
-            // Already borderless: unchanged, so the per-frame call does nothing.
             assert_eq!(bare.raw(), borderless(bare).raw());
         }
 

@@ -174,14 +174,15 @@ fn begin(app: &mut PhotocraftApp, p: [f64; 2], mods: egui::Modifiers) {
     let moves_layer = crate::canvas::command_moves_layer(app, tool, p, mods);
     let crop_tol = crate::crop_ui::tolerance(app);
     let gesture = if let Some(t) = &app.ui.transform {
+        let exclude = app.transform_preview.as_ref().and_then(|pv| pv.multi_targets()).map_or_else(|| vec![LayerId(t.layer)], <[LayerId]>::to_vec);
         if t.mode == crate::state::TransformMode::Distort {
             // Distort is freehand corner placement (fitting an image onto a screen, say): guides
             // and edges pulling the corners about only get in the way.
             None
         } else if near_handle(&t.quad, p, crate::transform_tool::handle_tolerance(app)) {
-            Some((Gesture::Point, vec![LayerId(t.layer)]))
+            Some((Gesture::Point, exclude))
         } else if in_quad(&t.quad, p) {
-            Some((Gesture::TransformMove { rect: quad_rect(&t.quad) }, vec![LayerId(t.layer)]))
+            Some((Gesture::TransformMove { rect: quad_rect(&t.quad) }, exclude))
         } else {
             None
         }

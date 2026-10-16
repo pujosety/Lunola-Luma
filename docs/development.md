@@ -1,5 +1,7 @@
 # Development guide
 
+> This guide carries forward upstream PhotoCraft development notes. Unqualified issue numbers and issue links refer to the upstream tracker unless explicitly labelled otherwise. Lunola Luma keeps `photocraft` package names, environment variables, settings paths and bundle IDs for compatibility.
+
 ## Prerequisites
 
 - Rust stable (1.95+). Add the web target with `rustup target add wasm32-unknown-unknown`.
@@ -18,7 +20,7 @@ then open a new terminal and check `cargo --version` and `rustc --version`.
 
 On Windows 11, Smart App Control can block Cargo, rustc or executables generated during a build.
 If a build reports `An Application Control policy has blocked this file. (os error 4551)`
-(source issue #1585), check:
+(upstream [issue #1585](https://github.com/storytold/photocraft/issues/1585)), check:
 
 - **Windows Security → App & browser control → Smart App Control settings** for its status.
 - **Event Viewer → Applications and Services Logs → Microsoft → Windows → CodeIntegrity →
@@ -29,8 +31,7 @@ reinstalling Rust does not establish that the blocked executable is trusted. See
 [Smart App Control FAQ](https://support.microsoft.com/en-us/windows/security/threat-malware-protection/smart-app-control-frequently-asked-questions)
 for the available controls; there is no per-app exception. On a managed device, ask your
 administrator about an approved development environment. If you only want to run Lunola Luma,
-use the [packaged Windows release](../releases/README.md) to avoid
-building locally; the downloaded app is still subject to Windows application-control checks.
+check the [Lunola Luma Releases page](https://github.com/pujosety/Lunola-Luma/releases) for an available Windows build; the downloaded app is still subject to Windows application-control checks.
 
 ## Build and run
 
@@ -82,7 +83,7 @@ CRAFT_FONTS_DIR="$PWD/../craft-fonts" cargo test --workspace     # runs the Japa
 
 ## Graphics startup and device loss
 
-`--safe-gpu` starts with the CPU renderer for one launch (no GPU canvas; a software adapter for the window where the platform has one: WARP on Windows, llvmpipe over GL on Linux). Before creating the wgpu device the app writes and locks `gpu-starting.json` in the config directory; it clears it once the first frames have rendered. A launch that finds an unlocked marker knows the previous start died inside the graphics driver (#4) and uses the next safer backend (Windows: Vulkan → DX12 → CPU; Linux: Vulkan → GL → CPU; macOS: Metal → CPU), remembering it in `performance.gpuBackend` (Preferences › Performance › GPU Backend, with **Reset GPU Backend**). With `auto`, Intel adapters on Windows use DX12. The adapter, backend, driver and fallback state are available by searching command search for **System Info**. The top-level Help menu is intentionally absent; **About Lunola Luma** is under File.
+`--safe-gpu` starts with the CPU renderer for one launch (no GPU canvas; a software adapter for the window where the platform has one: WARP on Windows, llvmpipe over GL on Linux). Before creating the wgpu device the app writes and locks `gpu-starting.json` in the config directory; it clears it once the first frames have rendered. A launch that finds an unlocked marker knows the previous start died inside the graphics driver (#4) and uses the next safer backend (Windows: Vulkan → DX12 → CPU; Linux: Vulkan → GL → CPU; macOS: Metal → CPU), remembering a working hardware backend in `performance.gpuBackend` (Preferences › Performance › GPU Backend, with **Reset GPU Backend**). CPU recovery is temporary until **Keep Using CPU** is chosen in the recovery dialog; dismissing the dialog or quitting without a choice preserves the previous GPU preference (#3483). With `auto`, Intel adapters on Windows use DX12. System Info is available through command search; the top-level Help menu is intentionally absent, and About Lunola Luma is under File.
 
 On DX12 the shader compiler is FXC (`d3dcompiler_47.dll`, part of Windows), or a `dxcompiler.dll` placed beside `photocraft.exe`, loaded by its full path. wgpu's default looks `dxcompiler.dll` up by name, which reaches the current directory and `PATH` and loaded other programs' incompatible builds (#712).
 
@@ -104,6 +105,7 @@ By default Lunola Luma's own crates log at `info` and everything else at `warn`.
 | Variable | Effect |
 |---|---|
 | `PHOTOCRAFT_CONTROL_PORT` | Same as `--control <port>` |
+| `PHOTOCRAFT_NO_PRINT` | Set to anything but `0`: `file.print` / `file.printOneCopy` refuse to spool (`dryRun` still works). CI sets it, with `LPDEST=photocraft-no-such-printer` as a second net; set both when running the panic hunt or fuzzers locally |
 | `RUST_LOG` | Log levels for standard error and the log file (see [Logs](#logs)) |
 | `PHOTOCRAFT_CONTROL_TOKEN` | 64-hex bearer token for control TCP (avoid on shared systems where environment inspection is possible) |
 | `PHOTOCRAFT_CONTROL_TOKEN_FILE` | Read, or create for a server, the control bearer-token file |
@@ -118,6 +120,7 @@ By default Lunola Luma's own crates log at `info` and everything else at `warn`.
 | `PHOTOCRAFT_CPU_COMPOSE=1` | Keep the wgpu canvas but composite on the CPU (compare GPU vs CPU renders, e.g. with the snapshot example) |
 | `PHOTOCRAFT_LOCALE` | Override Auto's native UI language for this launch; unsupported tags use English. See [system language detection](localization.md#first-launch-and-system-language). |
 | `PHOTOCRAFT_FX_TRACE=1` | Print the CPU time spent on GPU effect shapes and distance fields per rebuild |
+| `PHOTOCRAFT_STROKE_TRACE=1` (or `=<file.csv>`) | Time every frame of each brush stroke; print a summary per stroke, and with a path also append each frame to that CSV (see [Stroke latency trace](#stroke-latency-trace)) |
 | `PHOTOCRAFT_THEME_FILE=tokens.json` | **Debug builds only:** live design-token overrides, re-read on change |
 
 ### Live design tokens
@@ -127,6 +130,26 @@ By default Lunola Luma's own crates log at `info` and everything else at `warn`.
 ```
 
 Keys are the field names of `theme::Tokens` (`crates/ui-egui/src/theme.rs`). Edit and save the file while the app runs to see changes immediately, with no recompile. This is compiled out of release builds.
+
+### Stroke latency trace
+
+To find where a stroke's input-to-pixel time goes on a given machine (#1343), launch with `PHOTOCRAFT_STROKE_TRACE=1` (a summary per stroke on standard error) or `PHOTOCRAFT_STROKE_TRACE=strokes.csv` (also every frame, appended to that file). Paint a few strokes with the mouse or pen. Each summary gives p50/p95 in ms:
+
+```text
+stroke trace: 62 frames on vulkan NVIDIA GeForce RTX 5090 (p50/p95 ms): interval 8.33/8.53 moves/frame 1.00/2.00 stroke 0.80/1.53 canvas 0.40/0.75 ui 0.91/1.41 cpu 2.20/2.84 wait 6.04/6.64
+```
+
+| Column | What it is |
+|---|---|
+| `interval` | Time between frame starts while drawing (the display's refresh period when the app keeps up) |
+| `moves/frame` | Pointer moves the OS delivered per frame (control-channel `ui.pointer` input bypasses raw input and counts 0) |
+| `stroke` | Rendering the stroke's new points (the live stroke; on the last frame, the commit) |
+| `canvas` | Canvas refresh: composite and upload |
+| `ui` | Building the UI, the two above included |
+| `cpu` | eframe's CPU time per frame: UI, tessellation and GPU submission, without the vsync wait |
+| `wait` | `interval − cpu`: waiting on vsync or the swap chain, or idle |
+
+What the app can't time is the rest of input-to-photon: the OS input queue before a frame starts (up to one `interval`), frames queued for the display (the surface keeps up to two; the GL backend ignores that setting), and the compositor. So the first line names the backend. The last summary is also in the control channel's `perf.strokeTrace` (`ui.inspect`). The code is `crates/ui-egui/src/stroke_trace.rs`.
 
 ## Driving the app programmatically
 
@@ -176,7 +199,7 @@ At startup the desktop lists recovery metadata, then decodes one document at a t
 
 `photocraft-io` routes `.pcraft` through this crate in `import`/`export`, detecting it by magic or by extension.
 
-## MCP automation
+## MCP (agents)
 
 `photocraft-cli mcp` serves MCP on stdio using `crates/automation`, which is built on `rmcp`:
 
@@ -193,30 +216,36 @@ Tools:
 - `jobs_list` (running background jobs with progress, then recently finished ones with their result or error), `jobs_cancel` (one job by id, or every running job)
 - bridge only: `ui_inspect`, `ui_screenshot`, `ui_pointer`, `ui_menu_invoke`, `ui_set`, `control_call`
 
-MCP-compatible clients (`.mcp.json` in the repository root):
+Claude Code (`.mcp.json` in the repo root, or `claude mcp add`):
 
 ```json
 {
   "mcpServers": {
-    "lunola-luma": {
-      "command": "/path/to/lunola-luma/target/release/photocraft-cli",
+    "photocraft": {
+      "command": "/path/to/photocraft/target/release/photocraft-cli",
       "args": ["mcp", "--automation-read-root", "/absolute/path/to/trusted/workspace", "--automation-write-root", "/absolute/path/to/trusted/workspace"]
     },
-    "lunola-luma-live": {
-      "command": "/path/to/lunola-luma/target/release/photocraft-cli",
-      "args": ["mcp", "--bridge", "127.0.0.1:7878", "--control-token-file", "/private/path/lunola-luma-control.token"]
+    "photocraft-live": {
+      "command": "/path/to/photocraft/target/release/photocraft-cli",
+      "args": ["mcp", "--bridge", "127.0.0.1:7878", "--control-token-file", "/private/path/photocraft-control.token"]
     }
   }
 }
 ```
 
-MCP-compatible clients can use the installed or release-built CLI's absolute path in this JSON server definition. Keep the read/write roots scoped to the project directory.
+```sh
+cargo build --release -p photocraft-cli
+mkdir -p "$PWD/photocraft-work"
+claude mcp add photocraft -- "$PWD/target/release/photocraft-cli" mcp \
+  --automation-read-root "$PWD/photocraft-work" \
+  --automation-write-root "$PWD/photocraft-work"
+```
 
 `doc_inspect` (and the engine command `document.inspect`) reports the layer tree with kinds,
 bounds, masks, selection, effects (`effects.items[].kind`), smart filters (`smartFilters[]`), smart
 object sources (`smartSource`: `embedded` with its file name, or `linked` with a file path or, for a
 PSD placed layer, the `Idnt` uuid its duplicates share), type
-text, adjustment settings, channels and history, so automation clients can inspect document state without a
+text, adjustment settings, channels and history, so agents can verify what they did without a
 screenshot. `crates/automation/tests/agent_tasks.rs` is the reference: ten realistic edit tasks
 (title card, colour grade, undo/redo, editable smart blur, masks, saved selections, align,
 capability-scoped export, resize/crop, CMYK + native save) driven purely over MCP.
@@ -224,7 +253,7 @@ capability-scoped export, resize/crop, CMYK + native save) driven purely over MC
 Without MCP, `photocraft-cli serve [--port N]` keeps a headless session open and answers JSON lines
 (see `docs/control-protocol.md#headless-server`).
 
-A typical automation loop (place inputs under the configured read root and outputs under the write root):
+A typical agent loop (place inputs under the configured read root and outputs under the write root):
 
 1. `doc_open {path}`
 2. `command_list {filter:"blur"}`
@@ -236,7 +265,7 @@ A typical automation loop (place inputs under the configured read root and outpu
 
 `crates/cms` is our own pure-Rust ICC engine (v2/v4 parsing, matrix/TRC and LUT profiles, all four
 intents, black point compensation). It ships CC0 built-in profiles, including a synthetic
-"Photocraft Coated CMYK", because Adobe's CMYK profiles are proprietary (see `crates/cms/README.md`).
+"PhotoCraft Coated CMYK", because Adobe's CMYK profiles are proprietary (see `crates/cms/README.md`).
 
 - Documents carry an optional embedded ICC profile (`Document::icc_profile`); `edit.assignProfile`
   and `edit.convertToProfile` change it. Mode changes (`image.mode.*`) convert through cms.
@@ -284,7 +313,7 @@ translations do not affect the denominator. Unregistered locale TSV files are ig
 
 ## Scorecard and performance budgets
 
-[`docs/scorecard.md`](scorecard.md) says, with numbers, where Lunola Luma stands per area. It is
+[`docs/scorecard.md`](scorecard.md) says, with numbers, where PhotoCraft stands per area. It is
 generated; never edit it by hand.
 
 ```sh
@@ -366,7 +395,7 @@ How the web shell (`apps/photocraft-web/src/web.rs`) differs from desktop:
 - **Open** uses `rfd::AsyncFileDialog`. The bytes arrive asynchronously in `Services::inbox`, which the app drains every frame.
 - **Save / Save As / Export** trigger a browser download of the encoded bytes. The shell does this with a Blob, an object URL and a temporary `<a download>`, all created from Rust. There is no save dialog, so the suggested name becomes the download name.
 - **Drag-and-drop:** `WebShell` takes the frame's `dropped_files` before the app sees them. It reads each file with `DroppedFile::bytes_async` and pushes the bytes into the inbox.
-- **Startup failures:** `index.html` shows "Loading Lunola Luma…" until the app removes it, or replaces it with the error when the web runner fails to start. If the `.wasm` never downloads or doesn't match the page's `.js` (a stale cached `index.html` after a deploy), no Rust runs at all, so the page itself (CSS only, no script) adds a hint with a Reload link after 20 seconds.
+- **Startup failures:** `index.html` shows "Loading PhotoCraft…" until the app removes it, or replaces it with the error when the web runner fails to start. If the `.wasm` never downloads or doesn't match the page's `.js` (a stale cached `index.html` after a deploy), no Rust runs at all, so the page itself (CSS only, no script) adds a hint with a Reload link after 20 seconds.
 - **No control server:** browsers can't listen on TCP. To automate the web build, drive headless Chrome with `--remote-debugging-port`. `Page.setInterceptFileChooserDialog` plus `DOM.setFileInputFiles` covers Open, `Input.dispatchDragEvent` with `files` covers drops, and `Browser.setDownloadBehavior` captures downloads.
 - Headless Chrome on macOS (`--headless=new --enable-unsafe-webgpu`) gets a real WebGPU adapter.
 
@@ -455,7 +484,7 @@ against committed **sha256 manifests**. All pins are in one place:
 
 | Directory | What | Source | Manifest |
 |---|---|---|---|
-| `corpus/photoshop/` | 256 PSDs we authored with Photoshop: smart filters, layer-style effect shapes, the text engine, adjustments in every mode and depth | the separately maintained test corpus (ours, MIT OR Apache-2.0) | `xtask/photoshop-corpus.sha256` |
+| `corpus/photoshop/` | 256 PSDs we authored with Photoshop: smart filters, layer-style effect shapes, the text engine, adjustments in every mode and depth | https://github.com/storytold/photocraft-corpus (ours, MIT OR Apache-2.0) | `xtask/photoshop-corpus.sha256` |
 | `corpus/psd/` | 170 small psd-tools and ag-psd files, the mix most PSD tests use | psd-tools and ag-psd upstreams (MIT) | `xtask/psd-corpus.sha256` |
 | `corpus/psd-tools/` | the complete psd-tools test set (309 files) | psd-tools upstream (MIT) | `xtask/psd-tools-corpus.sha256` |
 | `corpus/heif/` | 9 small HEIC/HEIF files (checkerboards, RGB strips, a grid-tiled photo with EXIF/XMP, each with Apple's decode as `.ref.png`; a 10-bit RGBA file with its source PNG), for the `heif` feature | heic-rs (MIT OR Apache-2.0) and pillow-heif (BSD-3-Clause) upstreams | `xtask/heif-corpus.sha256` |
@@ -488,7 +517,7 @@ scripts/fetch-corpus.sh            # the same as cargo xtask corpus --all
   the manifests. A download happens only when a pin changes; otherwise the cache restores in seconds
   and is re-verified (sha256) before the tests run. Fork PRs read the base branch's cache.
 
-**Our own corpus: the separately maintained test corpus.**
+**Our own corpus: [photocraft-corpus](https://github.com/storytold/photocraft-corpus).**
 
 - **Authoring clone:** a normal git clone, `git clone git@github.com:storytold/photocraft-corpus.git`,
   placed next to this checkout (`../photocraft-corpus`). Its generators write there, and you commit
@@ -541,9 +570,9 @@ their own modes, an upper stroke covering lower ones.
 ## System printing
 
 `file.print` and `file.printOneCopy` keep PDF layout, scaling, marks and ICC conversion in
-Lunola Luma and submit the rendered bytes through `craft-print` at the Git revision pinned in
+PhotoCraft and submit the rendered bytes through `craft-print` at the Git revision pinned in
 `Cargo.toml`. CUPS streams the PDF on macOS/Linux; Windows uses the shared Windows PDF backend.
-The driver receives exact physical sheet size so it does not scale Lunola Luma's layout twice.
+The driver receives exact physical sheet size so it does not scale PhotoCraft's layout twice.
 Windows raster printing does not establish physical-printer colour fidelity; test critical
 photo output with the actual printer and its profile.
 

@@ -2,7 +2,7 @@
 
 ## Release status
 
-Lunola Luma v0.8.2 by Pujo Setyo is available as a [published partial prerelease](https://github.com/pujosety/Lunola-Luma/releases/tag/v0.8.2). This preview includes unsigned Windows x64 packages, Linux x86_64/aarch64, and Flatpak builds; macOS, Linux riscv64, WebAssembly, Windows x86/ARM64, and FreeBSD packages are omitted. CI and CLI test failures are documented in the [release notes](../releases/0.8.2.md). Verify `SHA256SUMS.txt` before installing. For source setup, follow this guide.
+Lunola Luma v0.8.3 is published as a partial preview; it is not a stable release. Review the [release notes](../releases/0.8.3.md) and [GitHub release](https://github.com/pujosety/Lunola-Luma/releases/tag/v0.8.3). Downloads cover Windows x86/x64/ARM64, Linux x86_64/aarch64/riscv64, FreeBSD 14 x86_64, Flatpak x86_64/aarch64, and WebAssembly. macOS is unavailable and Windows installers/executables are unsigned; verify packages against `SHA256SUMS.txt`. Do not use unrelated upstream downloads as Lunola Luma packages. For development, build this repository from source.
 
 ## Build from source on Windows
 

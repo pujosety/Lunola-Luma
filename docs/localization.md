@@ -27,6 +27,7 @@ contextual, command-ID and plural translations; missing entries fall back to Eng
 | Nederlands | `nl` | one / other |
 | Magyar | `hu` | one form |
 | Tiếng Việt | `vi` | one form |
+| Srpski | `sr` | one / few / many (teens use many) |
 
 Languages registered with `complete_menus` cover the current menu labels, `tl!` literals, blend
 mode names, and generated preference labels; tests enforce that coverage. Vietnamese (`vi`) is
@@ -47,7 +48,8 @@ The existing preference store saves the selection for future launches. `auto` fo
 native system locale; an unsupported code follows the same fallback. Regional tags such as
 `fr-CA`, `ko-KR`, `vi-VN` and `zh-CN` resolve to the corresponding registered catalog. Traditional and
 Simplified Chinese remain distinct. Every Portuguese locale (`pt`, `pt-BR`, `pt-PT`) uses the
-Brazilian Portuguese catalog.
+Brazilian Portuguese catalog. The Serbian catalog is written in Latin script (Ekavian); every
+Serbian locale (`sr-RS`, `sr-Latn-RS`, `sr_RS@latin`, and Cyrillic `sr-Cyrl-RS`) resolves to it.
 
 ### First launch and system language
 
@@ -74,7 +76,7 @@ English Auto fallback until browser-locale detection is implemented.
 
 API implementation and licensing: [sys-locale](https://github.com/1Password/sys-locale).
 
-Automation clients use the existing `prefs.set` command through CLI, MCP or the desktop control channel:
+Agents use the existing `prefs.set` command through CLI, MCP or the desktop control channel:
 
 ```json
 {"method":"engine.execute","params":{"command":"prefs.set","params":{"path":"interface.language","value":"ko"}}}

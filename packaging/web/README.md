@@ -86,7 +86,7 @@ Per-file upload limits: Cloudflare Pages and Workers static assets reject any fi
 it ever grows past 24 MiB, so a release can't ship a file a common host refuses. (Releases up to
 0.2.0 shipped a 25.8 MiB wasm, which Cloudflare rejected; issue #198.) The size comes from the
 `wasm-release` Cargo profile (fat LTO, size-optimized code with the pixel and file-decoding
-crates kept at speed) plus `wasm-opt -Oz`, and from storing the bundled fonts (Lunola Luma's and
+crates kept at speed) plus `wasm-opt -Oz`, and from storing the bundled fonts (PhotoCraft's and
 egui's) and the translation catalogs compressed, unpacked on first use.
 
 ## Any path works

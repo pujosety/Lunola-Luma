@@ -356,7 +356,7 @@ const MAX_CLIPBOARD_IMAGE_BYTES: u64 = 4 * 16384 * 16384;
 /// The clipboard image arboard can't read on Wayland (#2546): arboard 3.6 asks for `image/png`
 /// only, so a screenshot tool or clipboard manager that offers just `image/jpeg`, `image/bmp` or
 /// `image/webp` pasted nothing. Reads the other `image/*` types through the same data-control
-/// protocol arboard uses, and decodes them with our own codecs.
+/// protocol arboard uses, and decodes them with our own codecs. `None` off Wayland.
 #[cfg(target_os = "linux")]
 fn wayland_clipboard_image() -> Option<(u32, u32, Vec<u8>)> {
     use std::io::Read;
@@ -907,6 +907,7 @@ mod tests {
         let mut app = launch(&recovery);
         new_doc(&mut app, "#ff0000");
         let revision = app.session.active().unwrap().revision;
+        assert_ne!(revision, 0, "a sidecar-less bundle lists as revision 0");
         autosave(&mut app, &ctx);
 
         let mut failed = false;
@@ -927,12 +928,16 @@ mod tests {
         std::fs::remove_file(&recovery).unwrap();
         std::fs::create_dir(&recovery).unwrap();
         autosave(&mut app, &ctx);
+        // The worker commits the bundle's manifest before it publishes the sidecar, and
+        // `list_recovery` lists a committed sidecar-less bundle (revision 0) on its own, so
+        // the first non-empty listing can come from the middle of the write. Wait for the write
+        // to finish: the entry then carries the sidecar's revision.
         let mut recovered = Vec::new();
         let deadline = std::time::Instant::now() + std::time::Duration::from_secs(30);
         while std::time::Instant::now() < deadline {
             prefs_ui::tick(&mut app, &ctx);
             recovered = list_recovery(&recovery);
-            if !recovered.is_empty() {
+            if recovered.iter().any(|e| e.info.revision == revision) {
                 break;
             }
             std::thread::sleep(std::time::Duration::from_millis(10));
@@ -958,11 +963,6 @@ mod tests {
     fn red_png(w: u32, h: u32) -> Vec<u8> {
         let img = Image::from_u8(w, h, ChannelLayout::Rgba, [255u8, 0, 0, 255].repeat((w * h) as usize)).unwrap();
         photocraft_codecs::encode(&img, photocraft_codecs::Format::Png, &EncodeOptions::default()).unwrap()
-    }
-
-    fn encoded(format: photocraft_codecs::Format, w: u32, h: u32) -> Vec<u8> {
-        let img = Image::from_u8(w, h, ChannelLayout::Rgba, [255u8, 0, 0, 255].repeat((w * h) as usize)).unwrap();
-        photocraft_codecs::encode(&img, format, &EncodeOptions::default()).unwrap()
     }
 
     /// A 1×1 uncompressed 32-bit TGA (TGA has no magic number).
@@ -1012,9 +1012,14 @@ mod tests {
         assert!(image_from_files(&[bad]).is_none());
     }
 
+    fn encoded(format: photocraft_codecs::Format, w: u32, h: u32) -> Vec<u8> {
+        let img = Image::from_u8(w, h, ChannelLayout::Rgba, [255u8, 0, 0, 255].repeat((w * h) as usize)).unwrap();
+        photocraft_codecs::encode(&img, format, &EncodeOptions::default()).unwrap()
+    }
+
     #[test]
     fn non_png_clipboard_images_paste() {
-        // A screenshot tool that offers only image/bmp or image/jpeg must remain pasteable.
+        // #2546: a screenshot tool that offers only image/bmp or image/jpeg pasted nothing.
         let bmp = encoded(photocraft_codecs::Format::Bmp, 3, 2);
         let offers = vec!["text/plain".to_string(), "image/bmp".to_string()];
         let mut asked = Vec::new();

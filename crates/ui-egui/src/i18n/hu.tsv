@@ -12,11 +12,15 @@
 # Clean-room: every entry was written from the plain meaning of the English label using ordinary
 # Hungarian image-editing vocabulary (réteg, maszk, kijelölés ...). No proprietary localisation
 # resource, string table or product UI was consulted or copied; add entries the same way.
-# Product and technology names (Lunola Luma, ArtCraft, OpenType, CMYK, Lab ...) stay in Latin
+# Product and technology names (PhotoCraft, ArtCraft, OpenType, CMYK, Lab ...) stay in Latin
 # letters; the trailing "…" of dialog commands is kept. Plural rule: a count is followed by the
 # singular noun in Hungarian, so every @plural entry has a single form.
 
 # Plural messages and command id overrides
+# Custom paper dimensions in Print Settings.
+	Paper Width	Papír szélessége
+	Paper Height	Papír magassága
+
 @id	edit.purge.undo	Visszavonási adatok
 @id	edit.stroke	Körvonalazás…
 @id	edit.transform.scale	Méretezés
@@ -27,6 +31,7 @@
 @plural	Imported {n} brush from {file}|Imported {n} brushes from {file}	{n} ecset importálva. Forrás: {file}
 @plural	Imported {n} brush from {group}|Imported {n} brushes from {group}	{n} ecset importálva. Csoport: {group}
 @plural	Imported {n} gradient from {file}|Imported {n} gradients from {file}	{n} színátmenet importálva. Forrás: {file}
+@plural	Imported {n} pattern from {file}|Imported {n} patterns from {file}	{n} mintázat importálva. Forrás: {file}
 @plural	Imported {n} swatch from {file}|Imported {n} swatches from {file}	{n} színminta importálva. Forrás: {file}
 @plural	Played {n} step|Played {n} steps	{n} lépés lejátszva
 @plural	Saved for Web: {n} file|Saved for Web: {n} files	Mentés webre: {n} fájl
@@ -75,6 +80,13 @@
 	Black & White…	Fekete-fehér…
 	Brightness/Contrast…	Fényerő/kontraszt…
 	Browse…	Tallózás…
+	Source Files	Forrásfájlok
+	Use:	Használat:
+	Files	Fájlok
+	Add Open Files	Megnyitott fájlok hozzáadása
+	Sort By Name	Rendezés név szerint
+	Attempt to Automatically Align Source Images	Forrásképek automatikus igazításának megkísérlése
+	Create Smart Object after Loading Layers	Intelligens objektum létrehozása a rétegek betöltése után
 	Calculations…	Számítások…
 	Canvas Size…	Vászonméret…
 	Channel Mixer…	Csatornakeverő…
@@ -199,11 +211,15 @@
 	Reveal All	Minden megjelenítése
 	Revert	Visszaállítás
 	Rotate	Forgatás
+	Set horizontal skew	Vízszintes döntés beállítása
+	Set vertical skew	Függőleges döntés beállítása
 	Rotate 180°	Forgatás 180°-kal
 	Rotate 90° Clockwise	Forgatás 90°-kal az óramutató járása szerint
 	Rotate 90° Counter Clockwise	Forgatás 90°-kal az óramutató járásával szemben
 	Save	Mentés
 	Save a Copy…	Másolat mentése…
+	{name} can't keep everything in this document	Nem őrizhető meg minden a dokumentumból ebben a formátumban: {name}
+	Choose a format that keeps it, such as Photoshop (PSD), or save a copy.	Válassz olyan formátumot, amely mindent megőriz, például Photoshop (PSD), vagy ments másolatot.
 	Save As…	Mentés másként…
 	Save for Web (Legacy)…	Mentés webre (régi)…
 	Scale	Méretarány
@@ -384,6 +400,7 @@
 	Smooth…	Simítás…
 	Solid Color…	Egyszínű kitöltés…
 	Stack Mode	Halommód
+	Choose Stack Mode:	Halommód kiválasztása:
 	Standard Deviation	Szórás
 	Subject	Fő téma
 	Subtract Front Shape	Elülső alakzat kivonása
@@ -413,7 +430,7 @@
 	32-bit Preview Options…	32 bites előnézet beállításai…
 	4-up	4 nézet
 	6-up	6 nézet
-	About Lunola Luma	A Lunola Luma névjegye
+	About PhotoCraft	A PhotoCraft névjegye
 	About {app}	Névjegy: {app}
 	Actions	Műveletsorok
 	Activate Panel	Panel aktiválása
@@ -430,6 +447,9 @@
 	Appearance	Megjelenés
 	Apply Data Set	Adatkészlet alkalmazása
 	Apply Layer Mask	Rétegmaszk alkalmazása
+	Add Mask to Selection	Maszk hozzáadása a kijelöléshez
+	Subtract Mask from Selection	Maszk kivonása a kijelölésből
+	Intersect Mask with Selection	Maszk metszése a kijelöléssel
 	Artboard Guides	Rajztábla-segédvonalak
 	Artboards to Files	Rajztáblák fájlokba
 	Artboards to PDF	Rajztáblák PDF-be
@@ -443,6 +463,10 @@
 	Box Blur…	Dobozelmosás…
 	Breeze Dark Theme	Breeze sötét téma
 	Breeze Light Theme	Breeze világos téma
+	Soft dark	Lágy sötét
+	Soft light	Lágy világos
+	Soft Dark Theme	Lágy sötét téma
+	Soft Light Theme	Lágy világos téma
 	Brush Preview	Ecset előnézete
 	Brush Settings	Ecsetbeállítások
 	Brushes	Ecsetek
@@ -537,6 +561,8 @@
 	Facet	Lapolás
 	Fibers…	Szálak…
 	Field Blur…	Mezőelmosás…
+	No pin selected	Nincs kijelölt tű
+	Click the image to add a pin; drag a pin to move it, or its ring to change its blur. Delete removes the selected pin.	Kattints a képre tű hozzáadásához; húzd a tűt az áthelyezéséhez, vagy a gyűrűjét az elmosás módosításához. A Delete törli a kijelölt tűt.
 	Fill Path…	Útvonal kitöltése…
 	Fill Screen	Képernyő kitöltése
 	Filter	Szűrő
@@ -681,9 +707,9 @@
 	Paths	Útvonalak
 	Paths to Illustrator	Útvonalak Illustrator-fájlba
 	Pattern Preview	Mintázat előnézete
-	Lunola Luma	Lunola Luma
-	Lunola Luma on GitHub	Lunola Luma a GitHubon
-	Lunola Luma Website	Lunola Luma-weboldal
+	PhotoCraft	PhotoCraft
+	PhotoCraft on GitHub	PhotoCraft a GitHubon
+	PhotoCraft Website	PhotoCraft-weboldal
 	Photography	Fotózás
 	Picture Frame…	Képkeret…
 	Pinch…	Becsípés…
@@ -1161,6 +1187,11 @@
 	New Brush	Új ecset
 	New Brush Preset	Új ecset-előbeállítás
 	New Brush Preset…	Új ecset-előbeállítás…
+	Capture Brush Size in Preset	Ecsetméret rögzítése az előbeállításban
+	Include Tool Settings	Eszközbeállítások belefoglalása
+	Include Color	Szín belefoglalása
+	Enter a name for the brush preset	Adjon nevet az ecset-előbeállításnak
+	A brush preset with this name already exists	Már van ilyen nevű ecset-előbeállítás
 	New Crop Preset…	Új körbevágási előbeállítás…
 	New Tool Preset	Új eszköz-előbeállítás
 	No brush presets	Nincs ecset-előbeállítás
@@ -1686,6 +1717,7 @@ layerLabel	Magenta	Bíbor
 	Always use pressure for opacity	Mindig nyomásfüggő átlátszatlanság
 	Always use pressure for size	Mindig nyomásfüggő méret
 	Appearance Mode	Megjelenési mód
+	Presentation	Megjelenítés
 	Auto Erase	Automatikus radírozás
 	Auto Hide	Automatikus elrejtés
 	Auto-Select:	Automatikus kijelölés:
@@ -2455,6 +2487,10 @@ navigator	Zoom	Nagyítás mértéke
 	Camera Raw Filter ({layer})	Camera Raw szűrő ({layer})
 	Camera Raw isn't open	A Camera Raw nincs megnyitva
 	Cancelled opening {name}	Megnyitás megszakítva: {name}
+	The document “{name}” does not have an embedded {mode} profile.	A(z) „{name}” dokumentumnak nincs beágyazott {mode}-profilja.
+	The document “{name}” has an embedded color profile that does not match the current {mode} working space.	A(z) „{name}” dokumentum beágyazott színprofilja nem egyezik az aktuális {mode}-munkaszíntérrel.
+	Embedded: {embedded}	Beágyazott: {embedded}
+	Working: {working}	Munkaszíntér: {working}
 	Cancelled {label}	Megszakítva: {label}
 	Clarity	Tisztaság
 	Color Detail	Színrészletesség
@@ -2597,7 +2633,7 @@ cameraRaw	Yellow	Sárga
 	Advanced	Speciális
 	Adwaita dark	Adwaita sötét
 	All	Mind
-	All shortcuts reset to Lunola Luma defaults.	Minden billentyűparancs visszaállt a Lunola Luma alapértékére.
+	All shortcuts reset to PhotoCraft defaults.	Minden billentyűparancs visszaállt a PhotoCraft alapértékére.
 	All Slices	Összes szelet
 	All User Slices	Összes felhasználói szelet
 	Always create smart objects when placing	Elhelyezéskor mindig intelligens objektum létrehozása
@@ -2617,6 +2653,7 @@ cameraRaw	Yellow	Sárga
 	Autosave minutes	Automatikus mentés gyakorisága (perc)
 	Background Color	Háttérszín
 	Background Contents	Háttér tartalma
+	Custom background color	Egyéni háttérszín
 	Batch	Kötegelt feldolgozás
 	Binary assets added	Hozzáadott bináris elemek
 	Binary assets removed	Eltávolított bináris elemek
@@ -2689,7 +2726,7 @@ cameraRaw	Yellow	Sárga
 	Data	Adatok
 	Date	Dátum
 	Day For Night	Nappali éjszaka
-	Default Lunola Luma Size	Alapértelmezett Lunola Luma-méret
+	Default PhotoCraft Size	Alapértelmezett PhotoCraft-méret
 	Default printer	Alapértelmezett nyomtató
 	Default restored.	Alapértelmezés visszaállítva.
 	Defaults	Alapértékek
@@ -2834,10 +2871,10 @@ cameraRaw	Yellow	Sárga
 	Permission denied	Hozzáférés megtagadva
 	Phone	Telefon
 	Photo	Fotó
-	Lunola Luma found your keyboard shortcut set {set} from another image editor on this computer: {n} of its shortcuts differ from Lunola Luma's. Import it?	A Lunola Luma egy másik képszerkesztő billentyűparancs-készletét találta ezen a számítógépen: {set}. Ebben {n} billentyűparancs eltér a Lunola Lumaétól. Importálod?
-	Lunola Luma keeps retrying; until a save succeeds, preference changes are lost when it closes.	A Lunola Luma tovább próbálkozik; amíg a mentés nem sikerül, a beállítások módosításai bezáráskor elvesznek.
-	Lunola Luma Manages Colors	A Lunola Luma kezeli a színeket
-	Lunola Luma — an open-source, native image editor written in Rust.	Lunola Luma – nyílt forráskódú, natív képszerkesztő Rust nyelven.
+	PhotoCraft found your keyboard shortcut set {set} from another image editor on this computer: {n} of its shortcuts differ from PhotoCraft's. Import it?	A PhotoCraft egy másik képszerkesztő billentyűparancs-készletét találta ezen a számítógépen: {set}. Ebben {n} billentyűparancs eltér a PhotoCraftétól. Importálod?
+	PhotoCraft keeps retrying; until a save succeeds, preference changes are lost when it closes.	A PhotoCraft tovább próbálkozik; amíg a mentés nem sikerül, a beállítások módosításai bezáráskor elvesznek.
+	PhotoCraft Manages Colors	A PhotoCraft kezeli a színeket
+	PhotoCraft — an open-source, native image editor written in Rust.	PhotoCraft – nyílt forráskódú, natív képszerkesztő Rust nyelven.
 	Picas	Pica
 	Pixels	Pixel
 	Pixels/Centimeter	Pixel/centiméter
@@ -2948,7 +2985,7 @@ cameraRaw	Yellow	Sárga
 	The document does not have an embedded colour profile. Working space: {working}.	A dokumentumnak nincs beágyazott színprofilja. Munkaszíntér: {working}.
 	The document has an embedded colour profile that does not match the working space.\nEmbedded: {embedded}\nWorking: {working}	A dokumentum beágyazott színprofilja eltér a munkaszíntértől.\nBeágyazott: {embedded}\nMunkaszíntér: {working}
 	The keyboard shortcut set was not imported: {error}	A billentyűparancs-készlet importálása nem sikerült: {error}
-	These settings aren't available in Lunola Luma yet.	Ezek a beállítások a Lunola Lumaban még nem érhetők el.
+	These settings aren't available in PhotoCraft yet.	Ezek a beállítások a PhotoCraftban még nem érhetők el.
 	This fill layer must be rasterized before proceeding. Its fill content will no longer be editable. Rasterize the layer?	A folytatáshoz a kitöltőréteget raszterizálni kell. A kitöltés tartalma ezután nem lesz szerkeszthető. Raszterizálod a réteget?
 	This layer must be rasterized before proceeding.	A folytatáshoz a réteget raszterizálni kell.
 	This shape layer must be rasterized before proceeding. It will no longer be editable as a shape. Rasterize the shape?	A folytatáshoz az alakzatréteget raszterizálni kell. Ezután alakzatként nem lesz szerkeszthető. Raszterizálod az alakzatot?
@@ -2984,7 +3021,7 @@ cameraRaw	Yellow	Sárga
 	Y	Y
 	Yes	Igen
 	Your keyboard shortcut set {set} is in use here: {n} shortcuts differ from the defaults. Edit › Keyboard Shortcuts shows them; Reset All to Defaults undoes this.	A billentyűparancs-készleted itt is használatban van: {set}. Ebből {n} billentyűparancs eltér az alapértelmezettől. A Szerkesztés › Billentyűparancsok alatt láthatod őket; az Összes visszaállítása alapértékre paranccsal ez visszavonható.
-	{n} commands are not in Lunola Luma.	{n} parancs nem érhető el a Lunola Lumaban.
+	{n} commands are not in PhotoCraft.	{n} parancs nem érhető el a PhotoCraftban.
 	{shortcut} assigned.	Billentyűparancs hozzárendelve: {shortcut}
 	{shortcut} is already in use by {commands} and will be removed from it when you click OK.	A billentyűparancs már foglalt: {shortcut}. Jelenlegi parancs: {commands}. Az OK gombra kattintva onnan törlődik.
 
@@ -3372,7 +3409,7 @@ cameraRaw	Yellow	Sárga
 	Opened {name}	Megnyitva: {name}
 	Opened {url}	Megnyitva: {url}
 	Opening…	Megnyitás…
-	Or set Preferences › Performance › Linux display server to X11: Lunola Luma then always starts under XWayland.	Vagy állítsd X11-re a Beállítások › Teljesítmény › Linuxos megjelenítőszerver értékét: a Lunola Luma ekkor mindig XWayland alatt indul.
+	Or set Preferences › Performance › Linux display server to X11: PhotoCraft then always starts under XWayland.	Vagy állítsd X11-re a Beállítások › Teljesítmény › Linuxos megjelenítőszerver értékét: a PhotoCraft ekkor mindig XWayland alatt indul.
 	Original Ratio	Eredeti arány
 	Other	Egyéb
 	Out	Végpont
@@ -3391,9 +3428,9 @@ cameraRaw	Yellow	Sárga
 	Performance	Teljesítmény
 	Perimeter	Kerület
 	Perspective Crop Tool	Perspektivikus körbevágás
-	Lunola Luma is using the CPU image compositor. The window may still use your graphics adapter.	A Lunola Luma a CPU-s képösszeállítót használja. Az ablak megjelenítése ettől még használhatja a grafikus adaptert.
-	Lunola Luma website	Lunola Luma-weboldal
-	Lunola Luma — Screen Color Picker	Lunola Luma — Képernyő-színválasztó
+	PhotoCraft is using the CPU image compositor. The window may still use your graphics adapter.	A PhotoCraft a CPU-s képösszeállítót használja. Az ablak megjelenítése ettől még használhatja a grafikus adaptert.
+	PhotoCraft website	PhotoCraft-weboldal
+	PhotoCraft — Screen Color Picker	PhotoCraft — Képernyő-színválasztó
 	Photomerge	Fotóegyesítés
 	Pick a screen pixel or press Esc to cancel	Válassz egy pixelt a képernyőn, vagy nyomd meg az Esc billentyűt a megszakításhoz
 	Pick screen color	Szín kiválasztása a képernyőről
@@ -3471,7 +3508,7 @@ cameraRaw	Yellow	Sárga
 	Sample a pixel anywhere on the screen	Mintavétel a képernyő bármely pixeléből
 	Sampler	Színmintavevő
 	Save in background	Mentés a háttérben
-	Save your work and restart Lunola Luma to retry GPU acceleration. CPU rendering remains active for this session.	A GPU-gyorsítás újrapróbálásához mentsd a munkádat, majd indítsd újra a Lunola Lumaot. Ebben a munkamenetben a CPU-s megjelenítés marad aktív.
+	Save your work and restart PhotoCraft to retry GPU acceleration. CPU rendering remains active for this session.	A GPU-gyorsítás újrapróbálásához mentsd a munkádat, majd indítsd újra a PhotoCraftot. Ebben a munkamenetben a CPU-s megjelenítés marad aktív.
 	Saved a copy as {path}	Másolat mentve: {path}
 	Saved {name}	Mentve: {name}
 	Saved {path}; image assets: {n} in {dir}	Mentve: {path}; képelemek: {n} ({dir})
@@ -3559,7 +3596,7 @@ cameraRaw	Yellow	Sárga
 	This session: {reason}	Ebben a munkamenetben: {reason}
 	Tiny	Apró
 	To Center	Középre
-	To drop files, start Lunola Luma under XWayland: `{command}`	Fájlok behúzásához indítsd a Lunola Lumaot XWayland alatt: `{command}`
+	To drop files, start PhotoCraft under XWayland: `{command}`	Fájlok behúzásához indítsd a PhotoCraftot XWayland alatt: `{command}`
 	Tool	Eszköz
 	Top Left	Bal felső
 	Top Right	Jobb felső
@@ -3821,7 +3858,7 @@ cameraRaw	Yellow	Sárga
 	Modify Date	Módosítás dátuma
 	Mouse Controls	Egérvezérlés
 	Mouse Coordinates	Egérkoordináták
-	Native file drag-and-drop is not supported on Wayland yet. Use File › Open, or run Lunola Luma under XWayland with `WAYLAND_DISPLAY= photocraft`.	A fájlok natív behúzása Waylanden még nem támogatott. Használd a Fájl › Megnyitás parancsot, vagy futtasd a Lunola Lumaot XWaylanden: `WAYLAND_DISPLAY= photocraft`.
+	Native file drag-and-drop is not supported on Wayland yet. Use File › Open, or run PhotoCraft under XWayland with `WAYLAND_DISPLAY= photocraft`.	A fájlok natív behúzása Waylanden még nem támogatott. Használd a Fájl › Megnyitás parancsot, vagy futtasd a PhotoCraftot XWaylanden: `WAYLAND_DISPLAY= photocraft`.
 	New channel only	Csak új csatorna
 	New document…     ⌘N	Új dokumentum…     ⌘N
 	New Layer from Brush	Új réteg ecsetből
@@ -3865,7 +3902,7 @@ cameraRaw	Yellow	Sárga
 	Profile Mismatches: Ask When Opening	Profileltérés: rákérdezés megnyitáskor
 	Province / State	Megye / állam
 	Quick Sync	Gyors szinkronizálás
-	Quit Lunola Luma	Kilépés a Lunola Lumaból
+	Quit PhotoCraft	Kilépés a PhotoCraftból
 	Recent Items	Legutóbbi elemek
 	Reference point location	Viszonyítási pont helye
 	Rendering…	Renderelés…
@@ -3986,10 +4023,11 @@ cameraRaw	Yellow	Sárga
 	{name} (Photoshop)	{name} (Photoshop)
 	{message} ({note})	{message} ({note})
 @plural	Loaded {n} action from {file}|Loaded {n} actions from {file}	{n} művelet betöltve. Forrás: {file}
-@plural	{n} step has no Lunola Luma equivalent yet|{n} steps have no Lunola Luma equivalent yet	{n} lépésnek még nincs megfelelője a Lunola Lumaban
+@plural	{n} step has no PhotoCraft equivalent yet|{n} steps have no PhotoCraft equivalent yet	{n} lépésnek még nincs megfelelője a PhotoCraftban
 @plural	Saved {n} action to {file}|Saved {n} actions to {file}	{n} művelet mentve. Cél: {file}
 @plural	{n} step with no Photoshop equivalent left out|{n} steps with no Photoshop equivalent left out	{n} Photoshop-megfelelő nélküli lépés kihagyva
 
+	Starting serial	Kezdő sorszám
 # Actions panel: set folders, dialog toggle, Insert Stop
 	Insert Stop…	Leállítás beszúrása…
 	Save Set…	Készlet mentése…
@@ -4013,3 +4051,18 @@ cameraRaw	Yellow	Sárga
 	Loaded Camera Raw settings from {file}	Camera Raw-beállítások betöltve innen: {file}
 	Loaded Camera Raw settings from {file} ({n} not supported)	Camera Raw-beállítások betöltve innen: {file} ({n} nem támogatott)
 	Auto Add/Delete	Automatikus hozzáadás/törlés
+
+# Native Windows printing qualification
+	Don't also tick Mirror Image in Print Settings…: the two flips cancel out.	A nyomtatási beállításokban ne jelöld be a tükrözést is: a két tükrözés kioltja egymást.
+	Print Settings…	Nyomtatási beállítások…
+	Remember to turn off the printer's own colour management in Print Settings…	Ne felejtsd el kikapcsolni a nyomtató saját színkezelését a nyomtatási beállításokban…
+	Sent to {printer}	Elküldve ide: {printer}
+	set in Print Settings…	a nyomtatási beállításokban adható meg…
+	ICO is limited to 256 × 256 pixels	Az ICO legfeljebb 256 × 256 képpont lehet
+
+# Channel Options and New Spot Channel (#3761)
+	Channel Color	Csatorna színe
+	Color Indicates:	A szín jelzése:
+	Ink Characteristics	Festék jellemzői
+	Solidity:	Fedőképesség:
+	Redrawing	Újrarajzolás

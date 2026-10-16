@@ -2,7 +2,7 @@
 //! and Script Events Manager, plus the session state the File-menu commands share
 //! ([`FileMenuState`]).
 //!
-//! "Scripts" are Lunola Luma action scripts: JSON (`[[id, params], …]`, `{"steps": …}` or a
+//! "Scripts" are PhotoCraft action scripts: JSON (`[[id, params], …]`, `{"steps": …}` or a
 //! droplet) or a plain-text list with one `command.id {json params}` per line (`#` comments).
 //! Droplets are JSON files (`.pcdroplet`) holding an action plus batch options; `photocraft-cli
 //! droplet <file> <inputs…>` runs one, and on Unix a `.command` shim makes it
@@ -391,23 +391,8 @@ fn statistics(s: &mut Session, p: &Value) -> Result<Value> {
         .ok_or_else(|| bad(cmd, format!("unknown stack mode `{mode}`")))?;
     let input = p.get("input").or_else(|| p.get("paths")).cloned().ok_or_else(|| bad(cmd, "missing \"input\" (files or a folder)"))?;
     let align = p.get("align").and_then(Value::as_bool).unwrap_or(false);
-    let r = s.execute("file.scripts.loadFilesIntoStack", json!({"paths": input, "createSmartObject": !align}))?;
+    let r = s.execute("file.scripts.loadFilesIntoStack", json!({"paths": input, "align": align, "createSmartObject": true}))?;
     let n = r["layers"].as_u64().unwrap_or(0);
-    if align && n > 1 {
-        s.execute("select.allLayers", json!({}))?;
-        s.execute("edit.autoAlignLayers", json!({"projection": "auto"}))?;
-        let name = s.active().map(|d| d.doc.name.clone()).unwrap_or_default();
-        s.edit("Convert to Smart Object", |doc, active| {
-            let layers = std::mem::take(&mut doc.layers);
-            let smart = crate::smart_cmds::layers_to_smart(doc, &name, layers)?;
-            *active = Some(smart.id);
-            doc.layers = vec![smart];
-            Ok(())
-        })?;
-        if let Some(st) = s.active_mut() {
-            st.selected_layers = st.active_layer.into_iter().collect();
-        }
-    }
     let id = s.active().and_then(|d| d.doc.layers.first().map(|l| l.id)).ok_or(EngineError::NoDocument)?;
     s.select_layer(id)?;
     s.execute(&format!("layer.smartObjects.stackMode.{}", sm.id()), json!({"layer": id.0}))?;

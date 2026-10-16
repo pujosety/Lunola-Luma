@@ -1,6 +1,6 @@
 # Krita documents
 
-Lunola Luma opens Krita's native documents (`.kra`, and the `.krz` archive variant) with their
+PhotoCraft opens Krita's native documents (`.kra`, and the `.krz` archive variant) with their
 layers. File › Open, recent files, drops, the CLI (`convert`, `info`, `batch`) and automation
 (`doc.open`, MCP) all use the reader in `photocraft-io`; the browser build accepts them too. A
 file is recognised by its `mimetype` entry (`application/x-krita`). Krita files are import-only:
@@ -9,7 +9,7 @@ everything.
 
 ## What is read
 
-| Krita | Lunola Luma |
+| Krita | PhotoCraft |
 |---|---|
 | Paint layers, 8 and 16-bit RGBA, 8 and 16-bit gray | pixel layers, at the document's depth (a gray layer in an RGB document is converted) |
 | Layer position (`x`, `y`), tiles anywhere, also off-canvas | kept |
@@ -54,7 +54,7 @@ corrupted files are covered by tests.
 Unit tests (`crates/io/src/kra/tests.rs`) build Krita archives in code (raw and LZF tiles) and
 check layers, groups, pass-through, offsets, opacity, visibility, locks, masks, default pixels,
 16-bit and gray conversion, the merged-image fallback, LZF edge cases and malformed input.
-`crates/automation/tests/krita.rs` opens a `.kra` through the automation interface, edits it and saves
+`crates/automation/tests/krita.rs` opens a `.kra` through the agent surface, edits it and saves
 it as OpenRaster. `crates/engine/tests/kra.rs` (opt-in) opens a Krita-authored 16-bit file in a
 session, checks it is read-only, edits with undo and saves as `.ora` and `.pcraft`.
 

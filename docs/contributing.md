@@ -17,7 +17,7 @@
 2. **Algorithm** goes in the lowest crate that fits (`algo` for imaging, `paint`, `vector`, `text`, `cms`), with unit tests. It takes depth-agnostic surfaces (`photocraft-raster`), works per tile, and is deterministic (seeded randomness).
 3. **Command** goes in an engine module (`crates/engine/src/<area>_cmds.rs`) exposing `specs()`, registered with `v.extend(...)` in `commands.rs`. Fill in:
    - `id`, `label`, `menu` path and Photoshop's default `shortcut`,
-   - a params doc string such as `{"radius":px=4,"mode":"a|b"="a"}` (this is what automation clients read through `commands` / `command_list`),
+   - a params doc string such as `{"radius":px=4,"mode":"a|b"="a"}` (this is what agents read through `commands` / `command_list`),
    - an `enabled` predicate (greys the menu item out),
    - `run`, which returns a JSON result and records exactly **one** history step (use `coalesce` for drags and typing sessions).
 4. **Respect the context:** active selection (feathered), layer vs mask target, locks, the colour model and depth.

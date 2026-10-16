@@ -12,7 +12,17 @@
 # Product and technology names (Lunola Luma, ArtCraft, OpenType, CMYK, Lab ...) stay in Latin
 # letters; the trailing … of dialog commands is kept.
 
+# Channel Options and New Spot Channel (#3761)
+	Channel Color	Colore canale
+	Color Indicates:	Il colore indica:
+	Solidity:	Solidità:
+	Ink Characteristics	Caratteristiche inchiostro
+
 # Guide layout dialog
+
+# Custom print paper (#3820)
+	Paper Width	Larghezza della carta
+	Paper Height	Altezza della carta
 	Columns	Colonne
 	Rows	Righe
 	Number	Numero
@@ -46,7 +56,6 @@
 	Filter	Filtro
 	View	Vista
 	Window	Finestra
-	Help	Aiuto
 	(coming soon)	(prossimamente)
 	New…	Nuovo…
 	New from Clipboard	Nuovo dagli appunti
@@ -70,6 +79,8 @@
 	Save	Salva
 	Save As…	Salva con nome…
 	Save a Copy…	Salva una copia…
+	{name} can't keep everything in this document	{name} non può conservare tutto il contenuto di questo documento
+	Choose a format that keeps it, such as Photoshop (PSD), or save a copy.	Scegli un formato che conservi tutto, come Photoshop (PSD), oppure salva una copia.
 	Revert	Ripristina
 	Export	Esporta
 	Quick Export as PNG	Esportazione rapida come PNG
@@ -107,6 +118,13 @@
 	Script Events Manager…	Gestore eventi script…
 	Import	Importa
 	Browse…	Sfoglia…
+	Source Files	File di origine
+	Use:	Usa:
+	Files	File
+	Add Open Files	Aggiungi file aperti
+	Sort By Name	Ordina per nome
+	Attempt to Automatically Align Source Images	Prova ad allineare automaticamente le immagini di origine
+	Create Smart Object after Loading Layers	Crea oggetto avanzato dopo il caricamento dei livelli
 	Reveal in Finder	Mostra nel Finder
 	Show in Explorer	Mostra in Esplora file
 	Show in Folder	Mostra nella cartella
@@ -147,6 +165,8 @@
 	Transform Again on a Copy	Trasforma di nuovo su una copia
 	Scale	Scala
 	Rotate	Ruota
+	Set horizontal skew	Imposta inclinazione orizzontale
+	Set vertical skew	Imposta inclinazione verticale
 	Skew	Inclina
 	Distort	Distorci
 	Perspective	Prospettiva
@@ -358,6 +378,7 @@
 	Update Modified Content	Aggiorna contenuto modificato
 	Update All Modified Content	Aggiorna tutto il contenuto modificato
 	Stack Mode	Modalità pila
+	Choose Stack Mode:	Scegli modalità pila:
 	Entropy	Entropia
 	Kurtosis	Curtosi
 	Maximum	Massimo
@@ -529,6 +550,9 @@
 	Blur	Sfocatura
 	Blur Gallery	Galleria sfocatura
 	Field Blur…	Sfocatura campo…
+# Field Blur pins (#3373)
+	No pin selected	Nessuna puntina selezionata
+	Click the image to add a pin; drag a pin to move it, or its ring to change its blur. Delete removes the selected pin.	Fai clic sull’immagine per aggiungere una puntina; trascina una puntina per spostarla o il suo anello per cambiare la sfocatura. Canc rimuove la puntina selezionata.
 	Iris Blur…	Sfocatura diaframma…
 	Tilt-Shift…	Miniatura…
 	Path Blur…	Sfocatura tracciato…
@@ -726,6 +750,10 @@
 	Breeze Dark Theme	Tema Breeze scuro
 	Breeze light	Breeze chiaro
 	Breeze Light Theme	Tema Breeze chiaro
+	Soft dark	Morbido scuro
+	Soft light	Morbido chiaro
+	Soft Dark Theme	Tema morbido scuro
+	Soft Light Theme	Tema morbido chiaro
 	Next Theme	Tema successivo
 	Actions	Azioni
 	Brush Settings	Impostazioni pennello
@@ -758,9 +786,6 @@
 	About Lunola Luma	Informazioni su Lunola Luma
 	Lunola Luma Website	Sito web Lunola Luma
 	Lunola Luma on GitHub	Lunola Luma su GitHub
-	ArtCraft Website	Sito web ArtCraft
-	Join the ArtCraft Discord…	Unisciti al Discord di ArtCraft…
-	Report an Issue…	Segnala un problema…
 	WIA Support…	Supporto WIA…
 	Apply	Applica
 	HSB/HSL	HSB/HSL
@@ -812,7 +837,7 @@
 	All Caps	Tutto maiuscolo
 	All Slices	Tutte le sezioni
 	All User Slices	Tutte le sezioni utente
-	All shortcuts reset to Lunola Luma defaults.	Tutte le scorciatoie ripristinate ai predefiniti di Lunola Luma.
+	All shortcuts reset to Lunola Luma defaults.	Tutte le scorciatoie ripristinate ai default di Lunola Luma.
 	Alt	Alt
 	Always use pressure for opacity	Usa sempre pressione per opacità
 	Always use pressure for size	Usa sempre pressione per dimensione
@@ -826,6 +851,9 @@
 	Appearance	Aspetto
 	Appearance (Layer Style)	Aspetto (stile livello)
 	Apply Layer Mask	Applica maschera di livello
+	Add Mask to Selection	Aggiungi maschera alla selezione
+	Subtract Mask from Selection	Sottrai maschera dalla selezione
+	Intersect Mask with Selection	Interseca maschera con la selezione
 	Apply Per Tip	Applica per punta
 	Apply next selected layer comp	Applica composizione livelli successiva selezionata
 	Apply previous selected layer comp	Applica composizione livelli precedente selezionata
@@ -841,6 +869,7 @@
 	Background	Sfondo
 	Background Color	Colore sfondo
 	Background Contents	Contenuto sfondo
+	Custom background color	Colore sfondo personalizzato
 	Balance	Bilanciamento
 	Baseline	Linea base
 	Baseline shift	Scostamento linea base
@@ -963,7 +992,6 @@
 	Create Droplet	Crea droplet
 	Create Texture	Crea texture
 	Create Video Timeline	Crea timeline video
-	Professional Photo Editor	Editor fotografico professionale
 	Create a new count group	Crea nuovo gruppo conteggio
 	Create a new document or open an existing file.	Crea un nuovo documento o apri un file esistente.
 	Create a new group	Crea nuovo gruppo
@@ -1043,7 +1071,6 @@
 	Diffusion	Diffusione
 	Discard the embedded profile (don't color manage)	Scarta profilo incorporato (non gestire colore)
 	Discontiguous	Non contiguo
-	Discord	Discord
 	Dismiss	Chiudi
 	Display P3	Display P3
 	Display Text	Mostra testo
@@ -1176,7 +1203,6 @@
 	Invert All	Inverti tutto
 	Invert has no settings.	Inverti non ha impostazioni.
 	Italic	Corsivo
-	Join us on Discord	Unisciti al nostro Discord
 	Justify all	Giustifica tutto
 	Justify last centered	Giustifica ultimo centrato
 	Justify last left	Giustifica ultimo a sinistra
@@ -1310,6 +1336,7 @@
 	Perspective Warp is not active	Altera prospettiva non attiva
 	Perspective Warp: draw planes along the image's perspective, then switch to Warp	Altera prospettiva: disegna piani lungo la prospettiva immagine, poi passa ad Altera
 	Photo Filter	Filtro fotografico
+	Professional Photo Editor	Editor fotografico professionale
 	Lunola Luma	Lunola Luma
 	Lunola Luma Manages Colors	Lunola Luma gestisce i colori
 	Lunola Luma — an open-source, native image editor written in Rust.	Lunola Luma — editor immagini nativo open-source scritto in Rust.
@@ -1385,15 +1412,15 @@
 	Rename…	Rinomina…
 	Resample	Ricampiona
 	Reset All to Defaults	Ripristina tutto ai predefiniti
-	Import Shortcuts…	Importa scorciatoie…
-	Load a keyboard shortcut set saved as .kys	Carica un set di scorciatoie da tastiera salvato come .kys
-	Imported {n} shortcuts from {file}. Click OK to keep them.	Importate {n} scorciatoie da {file}. Fai clic su OK per conservarle.
+	Import Shortcuts…	Importa scelte rapide…
+	Load a keyboard shortcut set saved as .kys	Carica un set di scelte rapide da tastiera salvato come .kys
+	Imported {n} shortcuts from {file}. Click OK to keep them.	Importate {n} scelte rapide da {file}. Fai clic su OK per conservarle.
 	{n} commands are not in Lunola Luma.	{n} comandi non esistono in Lunola Luma.
-	Keyboard shortcuts imported	Scorciatoie da tastiera importate
-	Your keyboard shortcut set {set} is in use here: {n} shortcuts differ from the defaults. Edit › Keyboard Shortcuts shows them; Reset All to Defaults undoes this.	Il tuo set di scorciatoie da tastiera {set} è in uso qui: {n} scorciatoie differiscono dai predefiniti. Modifica › Scorciatoie da tastiera le mostra; Ripristina tutto ai predefiniti annulla l'importazione.
-	Import keyboard shortcuts?	Importare le scorciatoie da tastiera?
-	Lunola Luma found your keyboard shortcut set {set} from another image editor on this computer: {n} of its shortcuts differ from Lunola Luma's. Import it?	Lunola Luma ha trovato su questo computer il tuo set di scorciatoie da tastiera {set} di un altro editor di immagini: {n} delle sue scorciatoie differiscono da quelle di Lunola Luma. Importarlo?
-	Edit › Keyboard Shortcuts › Reset All to Defaults undoes an import.	Modifica › Scorciatoie da tastiera › Ripristina tutto ai predefiniti annulla un'importazione.
+	Keyboard shortcuts imported	Scelte rapide da tastiera importate
+	Your keyboard shortcut set {set} is in use here: {n} shortcuts differ from the defaults. Edit › Keyboard Shortcuts shows them; Reset All to Defaults undoes this.	Il tuo set di scelte rapide da tastiera {set} è in uso qui: {n} scelte rapide differiscono dai valori predefiniti. Modifica › Scelte rapide da tastiera le mostra; Ripristina tutto ai valori predefiniti annulla l'importazione.
+	Import keyboard shortcuts?	Importare le scelte rapide da tastiera?
+	Lunola Luma found your keyboard shortcut set {set} from another image editor on this computer: {n} of its shortcuts differ from Lunola Luma's. Import it?	Lunola Luma ha trovato su questo computer il tuo set di scelte rapide da tastiera {set} di un altro editor di immagini: {n} delle sue scelte rapide differiscono da quelle di Lunola Luma. Importarlo?
+	Edit › Keyboard Shortcuts › Reset All to Defaults undoes an import.	Modifica › Scelte rapide da tastiera › Ripristina tutto ai valori predefiniti annulla l'importazione.
 	Don't Import	Non importare
 	The keyboard shortcut set was not imported: {error}	Il set di scorciatoie da tastiera non è stato importato: {error}
 	Reset Section	Reimposta sezione
@@ -1583,7 +1610,6 @@
 	Apple Watch 45mm	Apple Watch 45mm
 	Aqua	Acqua
 	Art & Illustration	Arte e illustrazione
-	ArtCraft	ArtCraft
 	Background Eraser Tool	Strumento Gomma per sfondo
 	Bevel & Emboss	Smusso e rilievo
 	Blend Mode	Metodo di fusione
@@ -1653,7 +1679,6 @@
 	Film & Video	Film e video
 	From	Da
 	General	Generale
-	GitHub	GitHub
 	Gradient Overlay	Sovrapposizione sfumatura
 	Gradient Tool	Strumento Sfumatura
 	Greens	Verdi
@@ -2096,6 +2121,11 @@
 	Rename Brush…	Rinomina pennello…
 	Delete Brush	Elimina pennello
 	New Brush Preset…	Nuovo predefinito pennello…
+	Capture Brush Size in Preset	Acquisisci dimensione pennello nel predefinito
+	Include Tool Settings	Includi impostazioni strumento
+	Include Color	Includi colore
+	Enter a name for the brush preset	Immetti un nome per il predefinito pennello
+	A brush preset with this name already exists	Esiste già un predefinito pennello con questo nome
 	Brush Preset Options	Opzioni predefiniti pennello
 	Group name	Nome gruppo
 	Brush name	Nome pennello
@@ -2157,6 +2187,10 @@
 	No path to make a selection from: draw one with the Pen tool or select one in the Paths panel.	Nessun tracciato da cui creare selezione: disegnane uno con Penna o selezionane uno nel pannello Tracciati.
 	Cancel opening	Annulla apertura
 	Cancelled opening {name}	Apertura {name} annullata
+	The document “{name}” does not have an embedded {mode} profile.	Il documento “{name}” non ha un profilo {mode} incorporato.
+	The document “{name}” has an embedded color profile that does not match the current {mode} working space.	Il documento “{name}” ha un profilo colore incorporato che non corrisponde allo spazio di lavoro {mode} corrente.
+	Embedded: {embedded}	Incorporato: {embedded}
+	Working: {working}	Di lavoro: {working}
 	Developing {name}	Sviluppo di {name}
 	Cancelled {label}	{label} annullato
 	Esc to cancel	Esc per annullare
@@ -2463,6 +2497,7 @@ cameraRaw	Amount	Quantità
 	Fuchsia	Fucsia
 	Violet	Viola
 	Large document: redrawing on the CPU	Documento grande: ridisegno sulla CPU
+	Redrawing	Ridisegno
 	This redraw took {seconds} s on the CPU.	Questo ridisegno sulla CPU ha richiesto {seconds} s.
 	Edits that change the whole document, such as a layer's blend mode, opacity or visibility, redraw all of it.	Le modifiche che cambiano tutto il documento, come metodo di fusione, opacità o visibilità di un livello, lo ridisegnano per intero.
 	Its layers don't fit the GPU memory budget. Raising Memory usage in Preferences › Performance raises the budget, up to a quarter of this computer's memory.	I livelli non rientrano nel budget di memoria della GPU. Aumentare Uso memoria in Preferenze › Prestazioni alza il budget, fino a un quarto della memoria di questo computer.
@@ -2697,6 +2732,7 @@ curves	Smooth	Leviga
 	Paint over hair or fur on the image; Alt paints the other mode	Dipingi su capelli o pelo nell'immagine; Alt dipinge nell'altra modalità
 	Clear Brush Strokes	Cancella tracce del pennello
 	Show rulers	Mostra righelli
+	Presentation	Presentazione
 
 # Color Sampler (added with the i18n coverage repair)
 	Click to place · Alt-click or drag off-canvas to remove	Fai clic per posizionare · Alt-clic o trascina fuori dal quadro per rimuovere
@@ -2978,7 +3014,6 @@ curves	Smooth	Leviga
 	Choose…	Scegli…
 	Select Folder…	Seleziona cartella…
 	Override Action "Save" Commands	Sostituisci i comandi "Salva" dell'azione
-	File Naming	Denominazione file
 	Compatibility	Compatibilità
 	Mac OS	Mac OS
 	Unix	Unix
@@ -3264,7 +3299,7 @@ layerLabel	No Color	Nessun colore
 	Restart Required	Riavvio necessario
 	Restart	Riavvia
 	Quit	Esci
-	Quit Lunola Luma	Esci da Lunola Luma
+	Quit PhotoCraft	Esci da PhotoCraft
 	Close Window	Chiudi finestra
 	New Window	Nuova finestra
 	Open Image	Apri immagine
@@ -3768,7 +3803,7 @@ layerLabel	No Color	Nessun colore
 	Mezzotint	Mezzatinta
 	Mosaic	Mosaico
 	Motion Blur	Movimento sfocato
-	Native file drag-and-drop is not supported on Wayland yet. Use File › Open, or run Lunola Luma under XWayland with `WAYLAND_DISPLAY= photocraft`.	Il drag-and-drop nativo dei file non è ancora supportato su Wayland. Usa File › Apri, oppure avvia Lunola Luma sotto XWayland con `WAYLAND_DISPLAY= photocraft`.
+	Native file drag-and-drop is not supported on Wayland yet. Use File › Open, or run PhotoCraft under XWayland with `WAYLAND_DISPLAY= photocraft`.	Il drag-and-drop nativo dei file non è ancora supportato su Wayland. Usa File › Apri, oppure avvia PhotoCraft sotto XWayland con `WAYLAND_DISPLAY= photocraft`.
 	Neon Glow	Bagliore neon
 	New Guide Layout	Nuovo layout guide
 	New Video Layer from File	Nuovo livello video da file
@@ -3949,9 +3984,9 @@ layerLabel	No Color	Nessun colore
 	Saved {path}; image assets: {n} in {dir}	Salvato: {path}; risorse immagine: {n} in {dir}
 	{message} (notes: {n}; {warning})	{message} (note: {n}; {warning})
 	Preferences can't be saved	Impossibile salvare le preferenze
-	Lunola Luma keeps retrying; until a save succeeds, preference changes are lost when it closes.	Lunola Luma continua a riprovare; finché un salvataggio non riesce, le modifiche alle preferenze andranno perse alla chiusura.
+	PhotoCraft keeps retrying; until a save succeeds, preference changes are lost when it closes.	PhotoCraft continua a riprovare; finché un salvataggio non riesce, le modifiche alle preferenze andranno perse alla chiusura.
 	GPU retry scheduled	Nuovo tentativo GPU programmato
-	Save your work and restart Lunola Luma to retry GPU acceleration. CPU rendering remains active for this session.	Salva il lavoro e riavvia Lunola Luma per riprovare l'accelerazione GPU. Per questa sessione resta attivo il rendering su CPU.
+	Save your work and restart PhotoCraft to retry GPU acceleration. CPU rendering remains active for this session.	Salva il lavoro e riavvia PhotoCraft per riprovare l'accelerazione GPU. Per questa sessione resta attivo il rendering su CPU.
 	GPU device was lost; using the CPU renderer.	Dispositivo GPU perso; uso il rendering su CPU.
 	GPU error; using the CPU renderer.	Errore GPU; uso il rendering su CPU.
 	Couldn't open {name}: {error}	Impossibile aprire {name}: {error}
@@ -4008,13 +4043,12 @@ layerLabel	No Color	Nessun colore
 	Monitor profile on {display}: {profile}	Profilo monitor su {display}: {profile}
 	manual	manuale
 	fallback	ripiego
-	The document does not have an embedded colour profile. Working space: {working}.	Il documento non ha un profilo colore incorporato. Spazio di lavoro: {working}.
-	The document has an embedded colour profile that does not match the working space.\nEmbedded: {embedded}\nWorking: {working}	Il documento ha un profilo colore incorporato che non corrisponde allo spazio di lavoro.\nIncorporato: {embedded}\nDi lavoro: {working}
 	Importing {what} from {file}…	Importazione di {what} da {file}…
 	brushes	pennelli
 	gradients	sfumature
 @plural	Imported {n} brush from {file}|Imported {n} brushes from {file}	{n} pennello importato da {file}|{n} pennelli importati da {file}
 @plural	Imported {n} gradient from {file}|Imported {n} gradients from {file}	{n} sfumatura importata da {file}|{n} sfumature importate da {file}
+@plural	Imported {n} pattern from {file}|Imported {n} patterns from {file}	{n} pattern importato da {file}|{n} pattern importati da {file}
 	Data Set: {name}  ({index}/{total})	Set di dati: {name}  ({index}/{total})
 	(none)	(nessuno)
 navigator	Zoom	Zoom
@@ -4041,10 +4075,12 @@ navigator	Zoom	Zoom
 	{name} (Photoshop)	{name} (Photoshop)
 	{message} ({note})	{message} ({note})
 @plural	Loaded {n} action from {file}|Loaded {n} actions from {file}	Caricata {n} azione da {file}|Caricate {n} azioni da {file}
-@plural	{n} step has no Lunola Luma equivalent yet|{n} steps have no Lunola Luma equivalent yet	{n} passaggio non ha ancora un equivalente in Lunola Luma|{n} passaggi non hanno ancora un equivalente in Lunola Luma
+@plural	{n} step has no PhotoCraft equivalent yet|{n} steps have no PhotoCraft equivalent yet	{n} passaggio non ha ancora un equivalente in PhotoCraft|{n} passaggi non hanno ancora un equivalente in PhotoCraft
 @plural	Saved {n} action to {file}|Saved {n} actions to {file}	Salvata {n} azione in {file}|Salvate {n} azioni in {file}
 @plural	{n} step with no Photoshop equivalent left out|{n} steps with no Photoshop equivalent left out	Omesso {n} passaggio senza equivalente in Photoshop|Omessi {n} passaggi senza equivalente in Photoshop
 
+	File Naming	Denominazione file
+	Starting serial	Numero di serie iniziale
 # Actions panel: set folders, dialog toggle, Insert Stop
 	Insert Stop…	Inserisci interruzione…
 	Save Set…	Salva set…
@@ -4056,3 +4092,11 @@ navigator	Zoom	Zoom
 	Step {step} is waiting for its dialog	Il passaggio {step} attende la sua finestra di dialogo
 @plural	{n} action|{n} actions	{n} azione|{n} azioni
 	Auto Add/Delete	Aggiungi/elimina automaticamente
+
+# Native Windows printing qualification
+	Don't also tick Mirror Image in Print Settings…: the two flips cancel out.	Non attivare anche Immagine speculare nelle impostazioni di stampa: le due inversioni si annullano.
+	Print Settings…	Impostazioni di stampa…
+	Remember to turn off the printer's own colour management in Print Settings…	Ricorda di disattivare la gestione del colore della stampante nelle impostazioni di stampa…
+	Sent to {printer}	Inviato a {printer}
+	set in Print Settings…	impostato nelle impostazioni di stampa…
+	ICO is limited to 256 × 256 pixels	ICO è limitato a 256 × 256 pixel

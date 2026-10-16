@@ -298,13 +298,14 @@ fn command_list(a: &Args) -> Result<Vec<(String, Value)>, String> {
 fn run_cmds(a: &Args, out: &mut dyn Write, err: &mut dyn Write) -> R {
     let opts = export_opts(a)?;
     let mut h = Headless::trusted_local();
-    // Each missing-font warning is printed once, wherever it is first detected (open, a command or
-    // the save).
+    // Opening, running commands and exporting can all notice the same missing font:
+    // one `run` invocation reports each warning line at most once.
     let mut reported_fonts = std::collections::HashSet::<String>::new();
     match (a.positional.as_slice(), a.get("--new")) {
         ([file], None) => {
             let o = h.open(Path::new(file)).map_err(|e| e.to_string())?;
             let ws: Vec<String> = serde_json::from_value(o["warnings"].clone()).unwrap_or_default();
+            reported_fonts.extend(ws.iter().cloned());
             warn_all(err, &ws);
             reported_fonts.extend(ws);
         }
@@ -350,9 +351,8 @@ fn run_cmds(a: &Args, out: &mut dyn Write, err: &mut dyn Write) -> R {
     warn_all(err, &remaining);
     if let Some(o) = a.get("--out") {
         let r = h.save(None, Some(Path::new(o)), a.get("--format"), &opts).map_err(|e| e.to_string())?;
-        // The save repeats the document's missing-font warnings; each was already reported above.
-        let ws: Vec<String> =
-            serde_json::from_value::<Vec<String>>(r["warnings"].clone()).unwrap_or_default().into_iter().filter(|w| !reported_fonts.contains(w)).collect();
+        let ws: Vec<String> = serde_json::from_value(r["warnings"].clone()).unwrap_or_default();
+        let ws: Vec<String> = ws.into_iter().filter(|w| reported_fonts.insert(w.clone())).collect();
         warn_all(err, &ws);
     }
     Ok(())
@@ -399,7 +399,7 @@ pub fn load_actions(text: &str, name: Option<&str>) -> Result<(Steps, Vec<Action
 }
 
 /// [`load_actions`] for a file on disk: a Photoshop Actions file (`.atn`, by extension or by
-/// its version word) is converted first; the played action's steps with no Lunola Luma
+/// its version word) is converted first; the played action's steps with no PhotoCraft
 /// equivalent come back as warnings (they fail at playback, as in Photoshop when a step can't run).
 pub fn load_actions_file(path: &str, name: Option<&str>) -> Result<(Steps, Vec<Action>, Vec<String>), String> {
     let bytes = std::fs::read(path).map_err(|e| format!("{path}: {e}"))?;
@@ -423,7 +423,7 @@ pub fn load_actions_file(path: &str, name: Option<&str>) -> Result<(Steps, Vec<A
         .unsupported
         .iter()
         .filter(|u| u.action == action.name)
-        .map(|u| format!("`{}` step {}: Photoshop's \"{}\" ({}) has no Lunola Luma equivalent yet", u.action, u.step + 1, u.name, u.event))
+        .map(|u| format!("`{}` step {}: Photoshop's \"{}\" ({}) has no PhotoCraft equivalent yet", u.action, u.step + 1, u.name, u.event))
         .chain(imp.warnings.iter().cloned())
         .collect();
     let play = vec![("actions.play".to_string(), json!({"action": action.name}))];
@@ -608,7 +608,7 @@ mod missing_font_warning_tests {
 
     #[test]
     fn missing_typeface_is_reported_by_run_info_and_convert() {
-        let family = "DefinitelyMissingLunolaLumaTypeface1251";
+        let family = "DefinitelyMissingPhotoCraftTypeface1251";
         let folder = std::env::temp_dir().join(format!("photocraft-cli-font-warnings-{}", std::process::id()));
         std::fs::create_dir_all(&folder).unwrap();
         let native = folder.join("missing.pcraft");
