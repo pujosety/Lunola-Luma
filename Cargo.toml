@@ -99,6 +99,11 @@ strip = "debuginfo"
 [profile.wasm-release.package."*"]
 opt-level = "s"
 
+# The browser UI is a large control/orchestration crate, not a pixel-processing hot path; prefer
+# size optimization here while raster and compositing crates retain their speed-oriented settings.
+[profile.wasm-release.package.photocraft-ui-egui]
+opt-level = "z"
+
 # Decoding and rasterizing keep their speed.
 [profile.wasm-release.package.photocraft-codecs]
 opt-level = "s"
