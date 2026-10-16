@@ -372,7 +372,7 @@ artifact as `perf/baseline.json`.
 ```sh
 brew install trunk                 # or: cargo install trunk --locked
 cd apps/photocraft-web
-trunk build --release              # writes ../../dist/web (index.html, .js glue, .wasm)
+trunk build --release              # writes ../../dist/web (index.html, .js glue, .wasm, lockup PNG)
 trunk serve --release              # dev server on http://127.0.0.1:8765
 ```
 

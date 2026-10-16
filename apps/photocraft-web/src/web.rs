@@ -27,7 +27,7 @@ const CANVAS_ID: &str = "photocraft_canvas";
 /// Fonts the host serves next to the page (`photocraft_ui_egui::served_fonts`): craft-fonts' manifest
 /// format, each file relative to the site root. No manifest (a 404) means no served fonts.
 const FONTS_MANIFEST: &str = "fonts/manifest.txt";
-const PRODUCT_LOCKUP: &str = "lunola-luma-lockup-06d91ffe514d8f78.png";
+const PRODUCT_LOCKUP: &str = "lunola-luma-lockup.png";
 
 /// The served fonts: the manifest once read, and what the network has delivered.
 #[derive(Default)]
