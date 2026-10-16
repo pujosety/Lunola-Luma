@@ -9,7 +9,7 @@ This index separates user instructions, engineering references, branding records
 - [Branding and assets](../brand/lunola-luma/README.md) — owner-supplied source art, generated platform assets, legal boundary, and visual evidence.
 - [Rebrand change log](rebrand-changelog.md) — scope, compatibility boundaries, and verification status.
 - [Windows smoke-test record](windows-smoke-test.md) — build, runtime, menu, About, open/save/export evidence and known test limitation.
-- [Release folder](../releases/README.md) — 0.7.0 draft status, verified artifacts, and remaining release checks.
+- [Release folder](../releases/README.md) — current v0.8.3 partial-preview status, previous release notes, and release gates.
 
 ## Engineering and architecture
 
@@ -35,4 +35,4 @@ This index separates user instructions, engineering references, branding records
 - [Web hosting](../packaging/web/README.md)
 - [Copyright and license notices](../NOTICE), [asset attribution](../ATTRIBUTION.md), [MIT](../LICENSE-MIT), and [Apache-2.0](../LICENSE-APACHE).
 
-The `releases/` folder contains release notes and an artifact inventory. Only artifacts explicitly built and verified for Lunola Luma belong in its release draft.
+The `releases/` folder contains versioned release notes and an artifact inventory. Attach only artifacts explicitly built and verified for Lunola Luma to a release candidate or published release.

@@ -2,13 +2,13 @@
 
 ## Status
 
-The GitHub draft **Lunola Luma v0.7.0** is created and remains unpublished. Maintainers can review the [draft and its assets](https://github.com/pujosety/Lunola-Luma/releases/tag/untagged-e224a33c9c5c21e772fe); the public [Releases page](https://github.com/pujosety/Lunola-Luma/releases) will show downloads after publication. The draft contains 19 verified CI package files plus `SHA256SUMS.txt`; it does not include macOS, Linux riscv64, or WebAssembly builds. Windows MSI and portable executables are unsigned. The current evidence and limitations are in [`0.7.0-draft.md`](0.7.0-draft.md).
+The published **Lunola Luma v0.8.3 — Partial Preview** is live at [GitHub Releases](https://github.com/pujosety/Lunola-Luma/releases/tag/v0.8.3), tagged at commit `67f3154ff3fc44d6c961f4eefbfb0285a8a0f086`. It has 24 assets: 23 package files and `SHA256SUMS.txt`. Downloads cover Windows x86/x64/ARM64, Linux x86_64/aarch64/riscv64, FreeBSD x86_64, Flatpak x86_64/aarch64, and WebAssembly; macOS is unavailable. Windows installers/executables are unsigned, and Photoshop open/save was not manually tested for the PSD fix. See [`0.8.3.md`](0.8.3.md) for release notes and caveats. The earlier [v0.8.2 release](https://github.com/pujosety/Lunola-Luma/releases/tag/v0.8.2) and [v0.7.0 release](https://github.com/pujosety/Lunola-Luma/releases/tag/v0.7.0) remain available; their notes are [`0.8.2.md`](0.8.2.md) and [`0.7.0.md`](0.7.0.md).
 
 Only artifacts built from the Lunola Luma candidate and verified for the stated platform may be attached. Do not relabel unrelated downloads as Lunola Luma builds.
 
 ## Before any release
 
-- [ ] Confirm version/tag `0.7.0`, release owner, distribution channels, domains, and support route.
+- [ ] Confirm the next version/tag, release owner, distribution channels, domains, and support route.
 - [ ] Confirm permission and usage terms for the supplied Lunola Luma marks; keep upstream attribution and third-party notices intact.
 - [ ] Run formatting, tests, platform builds, required corpus checks, and an editing/open-save-export smoke test. Record known baseline failures.
 - [ ] Build and inspect packages for Windows, macOS, Linux, FreeBSD, and web as intended; verify icons, installer wizard text, file associations, and stable upgrade keys.
@@ -17,4 +17,4 @@ Only artifacts built from the Lunola Luma candidate and verified for the stated 
 - [ ] Verify every download URL and screenshot points to the intended Lunola Luma candidate.
 - [ ] Review and publish only after the owner explicitly approves the release candidate.
 
-[`docs/releasing.md`](../docs/releasing.md) documents the configured release workflow. It normally creates or updates a draft after all required jobs pass; for 0.7.0, the partial draft was assembled from successful CI outputs after the automated release job skipped. Publishing still requires explicit owner approval.
+[`docs/releasing.md`](../docs/releasing.md) documents the configured release workflow. For 0.7.0, the automated release job skipped after some platform jobs failed; a maintainer assembled the verified successful CI outputs and published the preview with the missing platforms, unsigned Windows packages, and known test failure disclosed. Future releases still require explicit owner approval.

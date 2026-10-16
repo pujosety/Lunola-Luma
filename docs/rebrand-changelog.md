@@ -23,9 +23,9 @@
 
 - Updated macOS bundle/DMG display assets, Linux desktop/AppStream/package descriptions, and Windows executable/installer display metadata.
 - Preserved compatibility identifiers: Cargo packages, executable/bundle/desktop IDs, registry upgrade keys, MIME types, document formats and signatures, extensions, environment variables, portable-data folders, settings paths, and command IDs.
-- A GitHub 0.7.0 draft is now present with 19 CI package assets plus `SHA256SUMS.txt`; it remains unpublished and has no `v0.7.0` tag yet. The draft, asset inventory and platform gaps are recorded in [`releases/0.7.0-draft.md`](../releases/0.7.0-draft.md).
+- **Release-history update:** The 0.7.0 candidate described in this rebrand record was later published (see [`releases/0.7.0.md`](../releases/0.7.0.md)). v0.8.2 and v0.8.3 also have published notes; the current release is v0.8.3 partial preview with 24 assets (23 packages plus `SHA256SUMS.txt`), no macOS build, and unsigned Windows packages. See [`releases/README.md`](../releases/README.md) for current status and caveats.
 
-## Verification
+## Initial verification snapshot for the 0.7.0 candidate
 
 - Windows `cargo fmt --all --check` passed. The optimized command `PHOTOCRAFT_REQUIRE_WINRES=1 CARGO_INCREMENTAL=0 cargo build --release --locked -j 1 -p photocraft -p photocraft-cli --features heif` completed successfully; GUI and CLI report `0.7.0 (dev build)` and are not included in the release assets.
 - Full UI library tests: 2,184 passed, 1 failed, 10 ignored. The sole failure is the Czech duplicate `"Tool"` catalog key, also present in the recorded baseline; details are in [`windows-smoke-test.md`](windows-smoke-test.md).
